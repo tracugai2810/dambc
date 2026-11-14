@@ -148,6 +148,11 @@ async function githubGetFileMeta(repoPath) {
 }
 
 async function githubGetRawBuffer(repoPath) {
+  const meta = await githubGetFileMeta(repoPath);
+  if (!meta) return null;
+  if (typeof meta.content === 'string') {
+    return Buffer.from(meta.content, 'base64');
+  }
   const res = await githubApi(`/repos/${GITHUB_REPO}/contents/${encodeGithubPath(repoPath)}?ref=${encodeURIComponent(GITHUB_BRANCH)}`, {
     accept: 'application/vnd.github.raw+json'
   });
@@ -562,6 +567,12 @@ function sortByDateDesc(items) {
 }
 
 async function handleApi(req, res, pathname) {
+  if (pathname.startsWith('/api/uploads/feedbacks/')) {
+    const rel = pathname.slice('/api/uploads/feedbacks/'.length);
+    await serveUploadedImage(res, rel);
+    return;
+  }
+
   if (pathname === '/api/health' && req.method === 'GET') {
     return sendJson(res, 200, {
       ok: true,
@@ -832,7 +843,8 @@ async function handleApi(req, res, pathname) {
 async function requestHandler(req, res) {
   try {
     const reqUrl = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
-    const rewrittenPath = reqUrl.searchParams.get('__path');
+    const allPaths = reqUrl.searchParams.getAll('__path');
+    const rewrittenPath = allPaths.find((p) => p && p !== '/api/index' && p !== '/api/index.js') || allPaths[0] || null;
     const pathname = decodeURIComponent(rewrittenPath || reqUrl.pathname);
 
     if (pathname.startsWith('/api/')) {

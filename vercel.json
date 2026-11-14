@@ -14,12 +14,12 @@
       "destination": "/admin.html"
     },
     {
-      "source": "/uploads/feedbacks/:filename",
-      "destination": "/api/index?__path=/uploads/feedbacks/:filename"
-    },
-    {
       "source": "/api/:path*",
       "destination": "/api/index?__path=/api/:path*"
+    },
+    {
+      "source": "/uploads/feedbacks/:filename",
+      "destination": "/api/index?__path=/uploads/feedbacks/:filename"
     }
   ]
 }
