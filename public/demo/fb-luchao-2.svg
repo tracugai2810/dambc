@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 440" width="640" height="440">
+  <defs>
+    <filter id="blurName3" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="4.5" />
+    </filter>
+  </defs>
+  <rect width="640" height="440" fill="#F0F2F5" rx="16"/>
+  <rect x="24" y="24" width="592" height="392" fill="#FFFFFF" rx="14" stroke="#E4E6EB" stroke-width="1.5"/>
+  <text x="44" y="58" font-family="system-ui, -apple-system, sans-serif" font-size="12.5" font-weight="600" fill="#991B1B">Hội Chia Sẻ Kinh Nghiệm Lục Hào • Tìm Vật Thất Lạc</text>
+  <line x1="44" y1="74" x2="596" y2="74" stroke="#E4E6EB" stroke-width="1"/>
+  <circle cx="62" cy="108" r="15" fill="#991B1B"/>
+  <text x="62" y="113" text-anchor="middle" font-family="serif" font-size="12" font-weight="bold" fill="#FAF8F5">Đ</text>
+  <rect x="88" y="88" width="496" height="106" rx="12" fill="#F0F2F5"/>
+  <text x="104" y="110" font-family="system-ui, -apple-system, sans-serif" font-size="13.5" font-weight="700" fill="#050505">Bùi Công Đam</text>
+  <text x="104" y="134" font-family="system-ui, -apple-system, sans-serif" font-size="13.5" fill="#1C1E21">Dụng thần Phụ Mẫu (giấy tờ) phục dưới Huynh Đệ ở quẻ Tốn (góc Đông Nam),</text>
+  <text x="104" y="156" font-family="system-ui, -apple-system, sans-serif" font-size="13.5" fill="#1C1E21">nhật kiến sinh phò nên chưa mất. Bạn tìm kỹ ở hộc tủ gỗ hoặc khe túi</text>
+  <text x="104" y="178" font-family="system-ui, -apple-system, sans-serif" font-size="13.5" fill="#1C1E21">xách màu sẫm hướng Đông Nam trong phòng ngủ nhé.</text>
+  <circle cx="104" cy="234" r="14" fill="#9CA3AF"/>
+  <rect x="128" y="212" width="456" height="148" rx="12" fill="#ECFDF5" stroke="#10B981" stroke-width="1"/>
+  <rect x="144" y="226" width="110" height="13" rx="4" fill="#374151" filter="url(#blurName3)"/>
+  <text x="144" y="262" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#064E3B">Dạ em tìm thấy sổ đỏ và giấy tờ xe rồi bác Đam ơi!! Lọt xuống khe sau</text>
+  <text x="144" y="284" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#064E3B">cái tủ quần áo gỗ ép đặt đúng góc Đông Nam phòng ngủ luôn ạ, kẹp</text>
+  <text x="144" y="306" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#064E3B">cùng xấp bìa màu nâu. Hú hồn từ sáng tới giờ, cảm ơn bác rất nhiều!</text>
+  <text x="144" y="340" font-family="system-ui, -apple-system, sans-serif" font-size="11.5" fill="#047857">Ảnh minh họa mẫu — Nghiệm lý Lục Hào tìm đồ vật</text>
+</svg>

@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 520" width="640" height="520">
+  <defs>
+    <filter id="blurName" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="4.5" />
+    </filter>
+  </defs>
+  <rect width="640" height="520" fill="#F0F2F5" rx="16"/>
+  <rect x="24" y="24" width="592" height="472" fill="#FFFFFF" rx="14" stroke="#E4E6EB" stroke-width="1.5"/>
+  <!-- Header bài đăng hội nhóm -->
+  <circle cx="62" cy="64" r="20" fill="#D1D5DB"/>
+  <rect x="94" y="47" width="140" height="14" rx="4" fill="#6B7280" filter="url(#blurName)"/>
+  <text x="94" y="78" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#65676B">Hội Quán Kinh Dịch &amp; Lục Hào • 3 ngày trước</text>
+  <text x="42" y="114" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#1C1E21">Nhờ các bác xem giúp em quẻ xin chuyển công việc tháng này có thuận không ạ...</text>
+  <line x1="42" y1="136" x2="598" y2="136" stroke="#E4E6EB" stroke-width="1"/>
+  <!-- Bình luận của Bùi Công Đam -->
+  <circle cx="60" cy="172" r="16" fill="#991B1B"/>
+  <text x="60" y="177" text-anchor="middle" font-family="serif" font-size="12" font-weight="bold" fill="#FAF8F5">Đ</text>
+  <rect x="86" y="150" width="496" height="128" rx="14" fill="#F0F2F5"/>
+  <text x="102" y="172" font-family="system-ui, -apple-system, sans-serif" font-size="13.5" font-weight="700" fill="#050505">Bùi Công Đam</text>
+  <text x="102" y="196" font-family="system-ui, -apple-system, sans-serif" font-size="13.5" fill="#1C1E21">Quẻ này Quan Quỷ vượng tướng lại hợp Thế, Thê Tài trì Thế động hóa</text>
+  <text x="102" y="216" font-family="system-ui, -apple-system, sans-serif" font-size="13.5" fill="#1C1E21">tiến thần. Chỗ mới có quý nhân nữ giới nâng đỡ, lương thưởng tăng.</text>
+  <text x="102" y="236" font-family="system-ui, -apple-system, sans-serif" font-size="13.5" fill="#1C1E21">Tuy nhiên hiện đang Tuần Không, phải qua ngày Dần hoặc Mão tới</text>
+  <text x="102" y="256" font-family="system-ui, -apple-system, sans-serif" font-size="13.5" fill="#1C1E21">mới chốt xong giấy tờ nhận việc nhé.</text>
+  <!-- Phản hồi của đương số -->
+  <circle cx="104" cy="316" r="14" fill="#9CA3AF"/>
+  <rect x="128" y="294" width="454" height="156" rx="14" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1"/>
+  <rect x="144" y="308" width="120" height="13" rx="4" fill="#374151" filter="url(#blurName)"/>
+  <text x="275" y="319" font-family="system-ui, -apple-system, sans-serif" font-size="11.5" font-weight="600" fill="#92400E">Tác giả bài viết • Phản hồi</text>
+  <text x="144" y="344" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#1C1E21">Em cảm ơn bác Đam nhiều lắm! Hôm nay đúng ngày Mão bên nhân sự</text>
+  <text x="144" y="366" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#1C1E21">vừa gửi offer chính thức cho em rồi ạ. Người phỏng vấn và ký duyệt</text>
+  <text x="144" y="388" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#1C1E21">đều là chị trưởng phòng đúng như bác nói luôn, mức lương còn nhỉnh</text>
+  <text x="144" y="410" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#1C1E21">hơn dự kiến ban đầu nữa. Chúc bác nhiều sức khỏe ạ!</text>
+  <text x="144" y="436" font-family="system-ui, -apple-system, sans-serif" font-size="11.5" fill="#6B7280">Ảnh minh họa mẫu — Bạn có thể xóa và thay bằng ảnh chụp thật trong /admin</text>
+</svg>

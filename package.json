@@ -1,0 +1,22 @@
+{
+  "name": "bui-cong-dam-blog",
+  "version": "1.0.0",
+  "description": "Website blog cá nhân và lưu trữ nghiệm lý Lục Hào - Tử Vi của Bùi Công Đam",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "blog",
+    "luc-hao",
+    "tu-vi",
+    "portfolio",
+    "bui-cong-dam"
+  ],
+  "author": "Bùi Công Đam",
+  "license": "MIT"
+}

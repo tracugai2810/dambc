@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quản Trị Blog — Bùi Công Đam</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Cormorant+Garamond:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="/" class="brand-link">
+        <span class="seal-stamp">CÔNG ĐAM</span>
+        <span class="brand-text">
+          <span class="brand-name">Trang Quản Trị</span>
+          <span class="brand-sub">Bùi Công Đam • Lưu trữ &amp; Nghiệm lý</span>
+        </span>
+      </a>
+
+      <div class="nav-group">
+        <a href="/" class="btn btn-secondary btn-sm">Xem Trang Chủ</a>
+        <button id="logoutBtn" type="button" class="btn btn-ghost btn-sm hidden">Đăng xuất</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container admin-layout">
+    <!-- Màn hình đăng nhập -->
+    <section id="loginSection" style="max-width: 440px; margin: 48px auto;">
+      <div class="admin-panel">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+          <span class="seal-stamp">ADMIN</span>
+          <h1 style="margin: 0; font-family: var(--font-display); font-size: 1.85rem;">Đăng Nhập Quản Trị</h1>
+        </div>
+        <p style="margin: 0 0 18px; color: var(--text-secondary); font-size: 0.9rem;">
+          Nhập mật khẩu quản trị (cấu hình trong biến môi trường <code>ADMIN_PASSWORD</code> trên Botkeep hoặc mặc định <code>dambc123</code> khi thử nghiệm).
+        </p>
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="adminPassword" class="form-label">Mật khẩu</label>
+            <input id="adminPassword" type="password" class="form-control" placeholder="Nhập mật khẩu..." required autocomplete="current-password" />
+          </div>
+          <div id="loginError" class="hidden" style="color: #DC2626; font-size: 0.86rem; margin-bottom: 12px;"></div>
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Mở Trang Quản Trị</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Giao diện quản trị sau khi đăng nhập -->
+    <section id="adminApp" class="hidden">
+      <!-- Tabs điều hướng quản trị -->
+      <div class="toolbar" style="margin-bottom: 24px;">
+        <div class="filter-tabs" role="tablist">
+          <button type="button" class="filter-tab active" data-admin-tab="tabUpload">Đăng Feedback Mới</button>
+          <button type="button" class="filter-tab" data-admin-tab="tabManageFb">Quản lý Feedback</button>
+          <button type="button" class="filter-tab" data-admin-tab="tabArticles">Bài viết Nghiệm lý</button>
+          <button type="button" class="filter-tab" data-admin-tab="tabProfile">Hồ sơ &amp; Sao lưu</button>
+        </div>
+        <div id="storageBadge" style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-secondary);">
+          Kho ảnh: 0 ảnh (0 MB)
+        </div>
+      </div>
+
+      <!-- TAB 1: Đăng Feedback Siêu Tốc -->
+      <div id="tabUpload" class="admin-tab-pane">
+        <div class="admin-grid-2">
+          <div class="admin-panel">
+            <h2 style="margin: 0 0 8px; font-family: var(--font-display); font-size: 1.65rem;">1. Ảnh Feedback (Tự nén WebP)</h2>
+            <p style="margin: 0 0 14px; font-size: 0.88rem; color: var(--text-secondary);">
+              Mẹo nhanh: Chụp màn hình đoạn chat/bình luận Facebook rồi ấn <strong>Ctrl + V</strong> trực tiếp vào trang này, hoặc chọn ảnh từ máy.
+            </p>
+
+            <div id="dropzone" class="dropzone" tabindex="0">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="margin: 0 auto 8px; color: var(--accent-gold);" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              <div style="font-weight: 600; margin-bottom: 4px;">Dán ảnh (Ctrl + V) hoặc Kéo thả vào đây</div>
+              <div style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 12px;">Hỗ trợ PNG, JPG, WebP. Ảnh tự động thu gọn dưới ~100KB.</div>
+              <input id="fbFileInput" type="file" accept="image/*" class="hidden" />
+              <button type="button" id="pickFileBtn" class="btn btn-secondary btn-sm">Chọn ảnh từ máy / điện thoại</button>
+            </div>
+
+            <div id="canvasEditorWrap" class="canvas-editor-wrap hidden">
+              <div class="canvas-toolbar">
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                  <button type="button" id="toggleBlurBtn" class="btn btn-secondary btn-sm">Bật cọ che tên khách</button>
+                  <select id="brushSizeSelect" class="form-control" style="width: auto; min-height: 36px; padding: 4px 10px; font-size: 0.82rem;" aria-label="Kích thước cọ làm mờ">
+                    <option value="16">Cọ nhỏ</option>
+                    <option value="28" selected>Cọ vừa</option>
+                    <option value="44">Cọ lớn</option>
+                  </select>
+                  <button type="button" id="undoBlurBtn" class="btn btn-ghost btn-sm" disabled>Hoàn tác</button>
+                </div>
+                <span id="compressionInfo" style="font-family: var(--font-mono); font-size: 0.76rem; color: var(--accent-gold);"></span>
+              </div>
+              <canvas id="blurCanvas"></canvas>
+              <p id="blurHint" class="hidden" style="margin: 8px 0 0; font-size: 0.8rem; color: var(--accent-vermilion); text-align: center;">
+                Đang bật chế độ che thông tin: Quệt chuột hoặc ngón tay lên tên/avatar khách trong ảnh để làm mờ.
+              </p>
+            </div>
+          </div>
+
+          <div class="admin-panel">
+            <h2 style="margin: 0 0 14px; font-family: var(--font-display); font-size: 1.65rem;">2. Ghi Chú &amp; Phân Loại</h2>
+            <form id="fbCreateForm">
+              <div class="admin-grid-2" style="gap: 12px;">
+                <div class="form-group">
+                  <label for="fbCategory" class="form-label">Mảng luận giải</label>
+                  <select id="fbCategory" class="form-control">
+                    <option value="Lục Hào">Lục Hào</option>
+                    <option value="Tử Vi">Tử Vi</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="fbDate" class="form-label">Ngày lưu</label>
+                  <input id="fbDate" type="date" class="form-control" />
+                </div>
+              </div>
+
+              <div class="admin-grid-2" style="gap: 12px;">
+                <div class="form-group">
+                  <label for="fbTopic" class="form-label">Chủ đề ngắn</label>
+                  <input id="fbTopic" type="text" class="form-control" placeholder="VD: Công danh, Tình duyên, Tìm đồ..." />
+                </div>
+                <div class="form-group">
+                  <label for="fbSource" class="form-label">Nguồn hội nhóm</label>
+                  <input id="fbSource" type="text" class="form-control" placeholder="VD: Hội Lục Hào, Zalo..." />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="fbTitle" class="form-label">Tiêu đề ngắn gọn (Hiển thị trên thẻ)</label>
+                <input id="fbTitle" type="text" class="form-control" placeholder="VD: Quẻ xin chuyển việc ứng ngày Mão có quý nhân giúp" required />
+              </div>
+
+              <div class="form-group">
+                <label for="fbNote" class="form-label">Tóm tắt bối cảnh / Nghiệm lý (Tùy chọn)</label>
+                <textarea id="fbNote" class="form-control" placeholder="Ghi vài dòng bối cảnh quẻ, dụng thần hoặc chi tiết ứng nghiệm..."></textarea>
+              </div>
+
+              <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+                <input id="fbFeatured" type="checkbox" style="width: 18px; height: 18px;" />
+                <label for="fbFeatured" style="font-size: 0.9rem; cursor: pointer;">Đánh dấu là ca Nổi bật</label>
+              </div>
+
+              <button id="fbSubmitBtn" type="submit" class="btn btn-primary" style="width: 100%;">
+                Lưu Feedback lên Website
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: Quản lý Feedback -->
+      <div id="tabManageFb" class="admin-tab-pane hidden">
+        <div class="admin-panel">
+          <div class="section-header" style="margin-bottom: 16px;">
+            <div>
+              <h2 style="margin: 0; font-family: var(--font-display); font-size: 1.65rem;">Danh Sách Feedback Đã Lưu</h2>
+              <p style="margin: 4px 0 0; font-size: 0.86rem; color: var(--text-secondary);">Chỉnh sửa thông tin hoặc xóa các ảnh không còn dùng.</p>
+            </div>
+            <button type="button" id="syncFolderBtn" class="btn btn-secondary btn-sm">Quét thư mục uploads/feedbacks</button>
+          </div>
+          <div id="adminFbList"></div>
+        </div>
+      </div>
+
+      <!-- TAB 3: Quản lý Bài Viết -->
+      <div id="tabArticles" class="admin-tab-pane hidden">
+        <div class="admin-grid-2">
+          <div class="admin-panel">
+            <h2 id="artFormHeading" style="margin: 0 0 14px; font-family: var(--font-display); font-size: 1.65rem;">Viết Bài Nghiệm Lý Mới</h2>
+            <form id="articleForm">
+              <input id="artEditId" type="hidden" />
+              <div class="admin-grid-2" style="gap: 12px;">
+                <div class="form-group">
+                  <label for="artCategory" class="form-label">Chuyên mục</label>
+                  <select id="artCategory" class="form-control">
+                    <option value="Lục Hào">Lục Hào</option>
+                    <option value="Tử Vi">Tử Vi</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="artDate" class="form-label">Ngày đăng</label>
+                  <input id="artDate" type="date" class="form-control" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="artTitle" class="form-label">Tiêu đề bài viết</label>
+                <input id="artTitle" type="text" class="form-control" required placeholder="Nhập tiêu đề bài nghiệm lý..." />
+              </div>
+              <div class="form-group">
+                <label for="artSummary" class="form-label">Tóm tắt ngắn</label>
+                <input id="artSummary" type="text" class="form-control" placeholder="1-2 câu mô tả nội dung chính..." />
+              </div>
+              <div class="form-group">
+                <label for="artContent" class="form-label">Nội dung chi tiết</label>
+                <textarea id="artContent" class="form-control" style="min-height: 200px;" required placeholder="Viết nội dung phân tích quẻ hoặc lá số..."></textarea>
+              </div>
+              <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">Lưu Bài Viết</button>
+                <button type="button" id="artResetBtn" class="btn btn-secondary">Hủy / Viết mới</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="admin-panel">
+            <h2 style="margin: 0 0 14px; font-family: var(--font-display); font-size: 1.65rem;">Các Bài Viết Hiện Có</h2>
+            <div id="adminArtList"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: Hồ sơ cá nhân & Sao lưu -->
+      <div id="tabProfile" class="admin-tab-pane hidden">
+        <div class="admin-grid-2">
+          <div class="admin-panel">
+            <h2 style="margin: 0 0 14px; font-family: var(--font-display); font-size: 1.65rem;">Thông Tin Cá Nhân &amp; Liên Hệ</h2>
+            <form id="profileForm">
+              <div class="admin-grid-2" style="gap: 12px;">
+                <div class="form-group">
+                  <label for="profName" class="form-label">Tên hiển thị</label>
+                  <input id="profName" type="text" class="form-control" required />
+                </div>
+                <div class="form-group">
+                  <label for="profSeal" class="form-label">Chữ trên Ấn Triện Đỏ</label>
+                  <input id="profSeal" type="text" class="form-control" maxlength="16" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="profTagline" class="form-label">Dòng phụ đề</label>
+                <input id="profTagline" type="text" class="form-control" />
+              </div>
+              <div class="form-group">
+                <label for="profBio" class="form-label">Giới thiệu bản thân</label>
+                <textarea id="profBio" class="form-control"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="profPhilosophy" class="form-label">Câu trích dẫn / Phương châm</label>
+                <input id="profPhilosophy" type="text" class="form-control" />
+              </div>
+              <div class="admin-grid-2" style="gap: 12px;">
+                <div class="form-group">
+                  <label for="profFb" class="form-label">Link Facebook</label>
+                  <input id="profFb" type="url" class="form-control" placeholder="https://facebook.com/..." />
+                </div>
+                <div class="form-group">
+                  <label for="profZalo" class="form-label">Số Zalo / Link Zalo</label>
+                  <input id="profZalo" type="text" class="form-control" placeholder="09xx..." />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="profEmail" class="form-label">Email (Tùy chọn)</label>
+                <input id="profEmail" type="email" class="form-control" />
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%;">Cập nhật Hồ sơ</button>
+            </form>
+          </div>
+
+          <div class="admin-panel">
+            <h2 style="margin: 0 0 10px; font-family: var(--font-display); font-size: 1.65rem;">Sao Lưu &amp; Di Chuyển Dữ Liệu</h2>
+            <p style="margin: 0 0 18px; color: var(--text-secondary); font-size: 0.9rem;">
+              Code nằm trên GitHub, còn toàn bộ ảnh và bài viết của bạn nằm trên Hosting Botkeep. Hãy tải file sao lưu về máy tính định kỳ để an toàn tuyệt đối 100%.
+            </p>
+
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <button type="button" id="downloadBackupBtn" class="btn btn-primary">
+                Tải Gói Sao Lưu Toàn Bộ (.json kèm tất cả ảnh)
+              </button>
+
+              <div style="border-top: 1px solid var(--border-subtle); padding-top: 16px; margin-top: 6px;">
+                <label for="restoreFileInput" class="form-label">Khôi phục từ file Sao lưu (.json)</label>
+                <input id="restoreFileInput" type="file" accept="application/json,.json" class="form-control" style="padding: 8px;" />
+                <button type="button" id="restoreBtn" class="btn btn-secondary" style="width: 100%; margin-top: 10px;">
+                  Khôi phục Dữ liệu &amp; Ảnh lên Host
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="/js/admin.js"></script>
+</body>
+</html>
