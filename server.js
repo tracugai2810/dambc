@@ -32,9 +32,15 @@ function loadEnv() {
 
 loadEnv();
 
+const IS_VERCEL = Boolean(process.env.VERCEL);
 const PORT = Number(process.env.PORT) || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'dambc123';
 const AUTH_SECRET = process.env.AUTH_SECRET || crypto.createHash('sha256').update(`bcd:${ADMIN_PASSWORD}`).digest('hex');
+
+const GITHUB_TOKEN = (process.env.GITHUB_TOKEN || '').trim();
+const GITHUB_REPO = (process.env.GITHUB_REPO || 'tracugai2810/dambc').trim();
+const GITHUB_BRANCH = (process.env.GITHUB_BRANCH || 'main').trim();
+const USE_GITHUB = Boolean(GITHUB_TOKEN && GITHUB_REPO);
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -53,44 +59,215 @@ const MIME_TYPES = {
 const IMAGE_EXTENSIONS = new Set(['.webp', '.png', '.jpg', '.jpeg', '.gif']);
 const ALLOWED_CATEGORIES = new Set(['Lục Hào', 'Tử Vi']);
 
-function ensureDataSetup() {
-  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-  if (!fs.existsSync(DATA_FILE)) {
-    if (fs.existsSync(SEED_FILE)) {
-      fs.copyFileSync(SEED_FILE, DATA_FILE);
-    } else {
-      const fallback = {
-        profile: {
-          name: 'Bùi Công Đam',
-          sealText: 'CÔNG ĐAM',
-          tagline: 'Nghiệm Lý Lục Hào & Tử Vi',
-          bio: 'Sổ tay lưu trữ thông tin cá nhân, các ca luận giải thực tế và phản hồi (feedback) trên các hội nhóm Lục Hào & Tử Vi.',
-          philosophy: 'Lấy thực chứng làm gốc, giữ lại những gì đã được thời gian kiểm nghiệm.',
-          contact: { facebook: '', zalo: '', email: '', note: '' }
-        },
-        feedbacks: [],
-        articles: []
-      };
-      fs.writeFileSync(DATA_FILE, JSON.stringify(fallback, null, 2), 'utf8');
+const memoryCache = {
+  data: null,
+  sha: null,
+  updatedAt: 0
+};
+
+function getDefaultData() {
+  if (fs.existsSync(SEED_FILE)) {
+    try {
+      return JSON.parse(fs.readFileSync(SEED_FILE, 'utf8'));
+    } catch {
+      // Fallback below
     }
   }
-}
-
-function readData() {
-  ensureDataSetup();
-  const raw = fs.readFileSync(DATA_FILE, 'utf8');
-  const parsed = JSON.parse(raw);
   return {
-    profile: parsed.profile || {},
-    feedbacks: Array.isArray(parsed.feedbacks) ? parsed.feedbacks : [],
-    articles: Array.isArray(parsed.articles) ? parsed.articles : []
+    profile: {
+      name: 'Bùi Công Đam',
+      sealText: 'CÔNG ĐAM',
+      tagline: 'Nghiệm Lý Lục Hào & Tử Vi',
+      bio: 'Sổ tay lưu trữ thông tin cá nhân, các ca luận giải thực tế và phản hồi (feedback) trên các hội nhóm Lục Hào & Tử Vi.',
+      philosophy: 'Luận giải lấy thực chứng làm gốc, giữ lại những điều đã được thời gian kiểm nghiệm.',
+      contact: { facebook: '', zalo: '', email: '', note: '' }
+    },
+    feedbacks: [],
+    articles: []
   };
 }
 
-function writeData(data) {
-  ensureDataSetup();
+function normalizeDataShape(parsed) {
+  return {
+    profile: parsed && typeof parsed.profile === 'object' && parsed.profile ? parsed.profile : {},
+    feedbacks: Array.isArray(parsed?.feedbacks) ? parsed.feedbacks : [],
+    articles: Array.isArray(parsed?.articles) ? parsed.articles : []
+  };
+}
+
+function ensureLocalDataSetup() {
+  if (IS_VERCEL) return;
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+  if (!fs.existsSync(DATA_FILE)) {
+    const fallback = getDefaultData();
+    fs.writeFileSync(DATA_FILE, JSON.stringify(fallback, null, 2), 'utf8');
+  }
+}
+
+function assertWritableEnvironment() {
+  if (IS_VERCEL && !USE_GITHUB) {
+    throw Object.assign(
+      new Error('Chưa cấu hình GITHUB_TOKEN trên Vercel. Vui lòng vào Project Settings -> Environment Variables trên Vercel để thêm GITHUB_TOKEN rồi Redeploy.'),
+      { statusCode: 400 }
+    );
+  }
+}
+
+function encodeGithubPath(repoPath) {
+  return repoPath.split('/').map((seg) => encodeURIComponent(seg)).join('/');
+}
+
+async function githubApi(apiPath, options = {}) {
+  const headers = {
+    Authorization: `Bearer ${GITHUB_TOKEN}`,
+    Accept: options.accept || 'application/vnd.github+json',
+    'User-Agent': 'bui-cong-dam-blog',
+    'X-GitHub-Api-Version': '2022-11-28',
+    ...(options.headers || {})
+  };
+  if (options.body && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
+  const res = await fetch(`https://api.github.com${apiPath}`, {
+    method: options.method || 'GET',
+    headers,
+    body: options.body,
+    cache: 'no-store'
+  });
+  return res;
+}
+
+async function githubGetFileMeta(repoPath) {
+  const res = await githubApi(`/repos/${GITHUB_REPO}/contents/${encodeGithubPath(repoPath)}?ref=${encodeURIComponent(GITHUB_BRANCH)}`);
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Lỗi đọc GitHub (${res.status}): ${text}`);
+  }
+  return res.json();
+}
+
+async function githubGetRawBuffer(repoPath) {
+  const res = await githubApi(`/repos/${GITHUB_REPO}/contents/${encodeGithubPath(repoPath)}?ref=${encodeURIComponent(GITHUB_BRANCH)}`, {
+    accept: 'application/vnd.github.raw+json'
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    throw new Error(`Không thể tải file từ GitHub (${res.status})`);
+  }
+  const arrayBuffer = await res.arrayBuffer();
+  return Buffer.from(arrayBuffer);
+}
+
+async function githubPutFile(repoPath, buffer, message, knownSha = null) {
+  let sha = knownSha;
+  if (!sha) {
+    const existing = await githubGetFileMeta(repoPath);
+    sha = existing?.sha || undefined;
+  }
+  const payload = {
+    message,
+    content: buffer.toString('base64'),
+    branch: GITHUB_BRANCH
+  };
+  if (sha) payload.sha = sha;
+
+  let res = await githubApi(`/repos/${GITHUB_REPO}/contents/${encodeGithubPath(repoPath)}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload)
+  });
+
+  if (res.status === 409) {
+    const latest = await githubGetFileMeta(repoPath);
+    if (latest?.sha) {
+      payload.sha = latest.sha;
+      res = await githubApi(`/repos/${GITHUB_REPO}/contents/${encodeGithubPath(repoPath)}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload)
+      });
+    }
+  }
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Lỗi lưu lên GitHub (${res.status}): ${errText}`);
+  }
+  return res.json();
+}
+
+async function githubDeleteFile(repoPath, message) {
+  const existing = await githubGetFileMeta(repoPath);
+  if (!existing?.sha) return;
+  const res = await githubApi(`/repos/${GITHUB_REPO}/contents/${encodeGithubPath(repoPath)}`, {
+    method: 'DELETE',
+    body: JSON.stringify({
+      message,
+      sha: existing.sha,
+      branch: GITHUB_BRANCH
+    })
+  });
+  if (!res.ok && res.status !== 404) {
+    const errText = await res.text();
+    throw new Error(`Lỗi xóa file trên GitHub (${res.status}): ${errText}`);
+  }
+}
+
+async function readData(options = {}) {
+  const fresh = Boolean(options.fresh);
+  if (USE_GITHUB) {
+    if (!fresh && memoryCache.data && Date.now() - memoryCache.updatedAt < 4000) {
+      return JSON.parse(JSON.stringify(memoryCache.data));
+    }
+    try {
+      const meta = await githubGetFileMeta('data/data.json');
+      if (meta && typeof meta.content === 'string') {
+        const parsed = normalizeDataShape(JSON.parse(Buffer.from(meta.content, 'base64').toString('utf8')));
+        memoryCache.data = parsed;
+        memoryCache.sha = meta.sha;
+        memoryCache.updatedAt = Date.now();
+        return JSON.parse(JSON.stringify(parsed));
+      }
+      if (meta && meta.sha) {
+        const rawBuf = await githubGetRawBuffer('data/data.json');
+        if (rawBuf) {
+          const parsed = normalizeDataShape(JSON.parse(rawBuf.toString('utf8')));
+          memoryCache.data = parsed;
+          memoryCache.sha = meta.sha;
+          memoryCache.updatedAt = Date.now();
+          return JSON.parse(JSON.stringify(parsed));
+        }
+      }
+    } catch (err) {
+      console.error('[GitHub readData fallback]', err.message);
+    }
+  }
+
+  if (!IS_VERCEL) {
+    ensureLocalDataSetup();
+  }
+  const sourceFile = fs.existsSync(DATA_FILE) ? DATA_FILE : SEED_FILE;
+  if (!fs.existsSync(sourceFile)) {
+    return normalizeDataShape(getDefaultData());
+  }
+  return normalizeDataShape(JSON.parse(fs.readFileSync(sourceFile, 'utf8')));
+}
+
+async function writeData(data, commitMessage = 'Cập nhật dữ liệu blog') {
+  assertWritableEnvironment();
+  const normalized = normalizeDataShape(data);
+
+  if (USE_GITHUB) {
+    const jsonBuffer = Buffer.from(JSON.stringify(normalized, null, 2), 'utf8');
+    const result = await githubPutFile('data/data.json', jsonBuffer, commitMessage, memoryCache.sha);
+    memoryCache.data = JSON.parse(JSON.stringify(normalized));
+    memoryCache.sha = result?.content?.sha || null;
+    memoryCache.updatedAt = Date.now();
+    return;
+  }
+
+  ensureLocalDataSetup();
   const tmpFile = `${DATA_FILE}.tmp`;
-  fs.writeFileSync(tmpFile, JSON.stringify(data, null, 2), 'utf8');
+  fs.writeFileSync(tmpFile, JSON.stringify(normalized, null, 2), 'utf8');
   fs.renameSync(tmpFile, DATA_FILE);
 }
 
@@ -98,50 +275,72 @@ function normalizeCategory(value) {
   return ALLOWED_CATEGORIES.has(value) ? value : 'Lục Hào';
 }
 
-function getStorageStats() {
-  ensureDataSetup();
+async function listUploadFiles() {
+  if (USE_GITHUB) {
+    try {
+      const res = await githubApi(`/repos/${GITHUB_REPO}/contents/data/uploads/feedbacks?ref=${encodeURIComponent(GITHUB_BRANCH)}`);
+      if (res.ok) {
+        const items = await res.json();
+        if (Array.isArray(items)) {
+          return items
+            .filter((item) => item.type === 'file' && IMAGE_EXTENSIONS.has(path.extname(item.name).toLowerCase()))
+            .map((item) => ({ name: item.name, size: Number(item.size) || 0, date: new Date().toISOString().slice(0, 10) }));
+        }
+      }
+    } catch (err) {
+      console.error('[GitHub listUploadFiles fallback]', err.message);
+    }
+  }
+
+  if (!fs.existsSync(UPLOAD_DIR)) return [];
   const entries = fs.readdirSync(UPLOAD_DIR, { withFileTypes: true });
-  let imageCount = 0;
-  let totalBytes = 0;
+  const results = [];
   for (const entry of entries) {
     if (!entry.isFile()) continue;
     const ext = path.extname(entry.name).toLowerCase();
     if (!IMAGE_EXTENSIONS.has(ext)) continue;
-    imageCount += 1;
-    totalBytes += fs.statSync(path.join(UPLOAD_DIR, entry.name)).size;
+    const stat = fs.statSync(path.join(UPLOAD_DIR, entry.name));
+    results.push({
+      name: entry.name,
+      size: stat.size,
+      date: stat.mtime.toISOString().slice(0, 10)
+    });
   }
+  return results;
+}
+
+async function getStorageStats() {
+  const files = await listUploadFiles();
+  const totalBytes = files.reduce((sum, f) => sum + (f.size || 0), 0);
   return {
-    imageCount,
+    imageCount: files.length,
     totalBytes,
-    totalMB: Number((totalBytes / (1024 * 1024)).toFixed(2))
+    totalMB: Number((totalBytes / (1024 * 1024)).toFixed(2)),
+    mode: USE_GITHUB ? 'github' : (IS_VERCEL ? 'vercel-readonly' : 'local'),
+    repo: USE_GITHUB ? GITHUB_REPO : ''
   };
 }
 
-function syncFeedbackFolder() {
-  const data = readData();
+async function syncFeedbackFolder() {
+  const data = await readData({ fresh: true });
   const existingUrls = new Set(data.feedbacks.map((item) => item.imageUrl));
-  const entries = fs.readdirSync(UPLOAD_DIR, { withFileTypes: true });
+  const files = await listUploadFiles();
   let addedCount = 0;
 
-  for (const entry of entries) {
-    if (!entry.isFile()) continue;
-    const ext = path.extname(entry.name).toLowerCase();
-    if (!IMAGE_EXTENSIONS.has(ext)) continue;
-    const urlPath = `/uploads/feedbacks/${entry.name}`;
+  for (const file of files) {
+    const urlPath = `/uploads/feedbacks/${file.name}`;
     if (existingUrls.has(urlPath)) continue;
 
-    const stat = fs.statSync(path.join(UPLOAD_DIR, entry.name));
-    const dateStr = stat.mtime.toISOString().slice(0, 10);
-    const baseLabel = path.basename(entry.name, ext).replace(/[-_]+/g, ' ').trim();
-
+    const ext = path.extname(file.name).toLowerCase();
+    const baseLabel = path.basename(file.name, ext).replace(/[-_]+/g, ' ').trim();
     data.feedbacks.unshift({
       id: `fb-${crypto.randomUUID().slice(0, 8)}`,
       category: baseLabel.toLowerCase().includes('tu vi') || baseLabel.toLowerCase().includes('tuvi') ? 'Tử Vi' : 'Lục Hào',
       topic: 'Đồng bộ từ thư mục',
-      title: `Feedback lưu trữ (${entry.name})`,
+      title: `Feedback lưu trữ (${file.name})`,
       note: 'Ảnh được thêm trực tiếp vào thư mục uploads/feedbacks. Bạn có thể cập nhật lại tiêu đề và ghi chú nghiệm lý trong trang Quản trị.',
       imageUrl: urlPath,
-      date: dateStr,
+      date: file.date || new Date().toISOString().slice(0, 10),
       source: 'Hội nhóm',
       featured: false
     });
@@ -149,7 +348,7 @@ function syncFeedbackFolder() {
   }
 
   if (addedCount > 0) {
-    writeData(data);
+    await writeData(data, `Đồng bộ ${addedCount} ảnh mới từ thư mục uploads/feedbacks`);
   }
   return { addedCount, totalFeedbacks: data.feedbacks.length };
 }
@@ -217,6 +416,9 @@ function sendJson(res, statusCode, payload, extraHeaders = {}) {
 
 function readJsonBody(req, maxBytes = 15 * 1024 * 1024) {
   return new Promise((resolve, reject) => {
+    if (req.body && typeof req.body === 'object') {
+      return resolve(req.body);
+    }
     const chunks = [];
     let total = 0;
     req.on('data', (chunk) => {
@@ -240,7 +442,8 @@ function readJsonBody(req, maxBytes = 15 * 1024 * 1024) {
   });
 }
 
-function saveBase64Image(imageData, fileNameHint = '') {
+async function saveBase64Image(imageData, fileNameHint = '') {
+  assertWritableEnvironment();
   const match = /^data:(image\/(?:webp|png|jpeg|jpg|gif));base64,([A-Za-z0-9+/=]+)$/i.exec(imageData || '');
   if (!match) {
     throw Object.assign(new Error('Định dạng ảnh không hợp lệ (chỉ hỗ trợ WebP, PNG, JPG, GIF).'), { statusCode: 400 });
@@ -265,14 +468,33 @@ function saveBase64Image(imageData, fileNameHint = '') {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
   const randomSuffix = crypto.randomBytes(3).toString('hex');
   const fileName = `${timestamp}-${safeSlug}-${randomSuffix}${ext}`;
-  const filePath = path.join(UPLOAD_DIR, fileName);
   const buffer = Buffer.from(match[2], 'base64');
-  fs.writeFileSync(filePath, buffer);
+
+  if (USE_GITHUB) {
+    await githubPutFile(`data/uploads/feedbacks/${fileName}`, buffer, `Thêm ảnh feedback ${fileName}`);
+  } else {
+    ensureLocalDataSetup();
+    fs.writeFileSync(path.join(UPLOAD_DIR, fileName), buffer);
+  }
+
   return {
     fileName,
     imageUrl: `/uploads/feedbacks/${fileName}`,
     bytes: buffer.length
   };
+}
+
+async function deleteUploadedImage(imageUrl) {
+  if (!imageUrl || !imageUrl.startsWith('/uploads/feedbacks/')) return;
+  const fileName = path.basename(imageUrl);
+  if (USE_GITHUB) {
+    await githubDeleteFile(`data/uploads/feedbacks/${fileName}`, `Xóa ảnh feedback ${fileName}`);
+    return;
+  }
+  const target = path.join(UPLOAD_DIR, fileName);
+  if (fs.existsSync(target)) {
+    fs.unlinkSync(target);
+  }
 }
 
 function serveStaticFile(res, baseDir, relativePath, cacheControl = 'public, max-age=3600') {
@@ -283,12 +505,10 @@ function serveStaticFile(res, baseDir, relativePath, cacheControl = 'public, max
   if (!fullPath.startsWith(resolvedBase + path.sep) && fullPath !== resolvedBase) {
     res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
     res.end('Forbidden');
-    return;
+    return true;
   }
   if (!fs.existsSync(fullPath) || fs.statSync(fullPath).isDirectory()) {
-    res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
-    res.end('Not Found');
-    return;
+    return false;
   }
 
   const ext = path.extname(fullPath).toLowerCase();
@@ -298,6 +518,28 @@ function serveStaticFile(res, baseDir, relativePath, cacheControl = 'public, max
     'Cache-Control': cacheControl
   });
   fs.createReadStream(fullPath).pipe(res);
+  return true;
+}
+
+async function serveUploadedImage(res, fileName) {
+  const safeName = path.basename(fileName);
+  if (serveStaticFile(res, UPLOAD_DIR, safeName, 'public, max-age=86400')) {
+    return;
+  }
+  if (USE_GITHUB) {
+    const buffer = await githubGetRawBuffer(`data/uploads/feedbacks/${safeName}`);
+    if (buffer) {
+      const ext = path.extname(safeName).toLowerCase();
+      res.writeHead(200, {
+        'Content-Type': MIME_TYPES[ext] || 'application/octet-stream',
+        'Cache-Control': 'public, max-age=31536000, immutable'
+      });
+      res.end(buffer);
+      return;
+    }
+  }
+  res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+  res.end('Not Found');
 }
 
 function sortByDateDesc(items) {
@@ -306,16 +548,21 @@ function sortByDateDesc(items) {
 
 async function handleApi(req, res, pathname) {
   if (pathname === '/api/health' && req.method === 'GET') {
-    return sendJson(res, 200, { ok: true, time: new Date().toISOString() });
+    return sendJson(res, 200, {
+      ok: true,
+      mode: USE_GITHUB ? 'github' : (IS_VERCEL ? 'vercel-readonly' : 'local'),
+      time: new Date().toISOString()
+    });
   }
 
   if (pathname === '/api/data' && req.method === 'GET') {
-    const data = readData();
+    const data = await readData();
+    const storageStats = await getStorageStats();
     return sendJson(res, 200, {
       profile: data.profile,
       feedbacks: sortByDateDesc(data.feedbacks),
       articles: sortByDateDesc(data.articles),
-      storageStats: getStorageStats()
+      storageStats
     });
   }
 
@@ -335,7 +582,7 @@ async function handleApi(req, res, pathname) {
   if (pathname === '/api/profile' && req.method === 'PUT') {
     if (!requireAdmin(req, res)) return;
     const body = await readJsonBody(req);
-    const data = readData();
+    const data = await readData({ fresh: true });
     data.profile = {
       ...data.profile,
       name: String(body.name || data.profile.name || 'Bùi Công Đam').trim(),
@@ -350,18 +597,19 @@ async function handleApi(req, res, pathname) {
         note: String(body.contact?.note || '').trim()
       }
     };
-    writeData(data);
+    await writeData(data, 'Cập nhật hồ sơ cá nhân Bùi Công Đam');
     return sendJson(res, 200, { profile: data.profile });
   }
 
   if (pathname === '/api/feedbacks' && req.method === 'POST') {
     if (!requireAdmin(req, res)) return;
+    assertWritableEnvironment();
     const body = await readJsonBody(req, 15 * 1024 * 1024);
     if (!body.imageData) {
       return sendJson(res, 400, { error: 'Vui lòng chọn hoặc dán (Ctrl+V) ảnh feedback.' });
     }
-    const saved = saveBase64Image(body.imageData, body.topic || body.category || 'feedback');
-    const data = readData();
+    const saved = await saveBase64Image(body.imageData, body.topic || body.category || 'feedback');
+    const data = await readData({ fresh: true });
     const newItem = {
       id: `fb-${crypto.randomUUID().slice(0, 8)}`,
       category: normalizeCategory(body.category),
@@ -374,15 +622,16 @@ async function handleApi(req, res, pathname) {
       featured: Boolean(body.featured)
     };
     data.feedbacks.unshift(newItem);
-    writeData(data);
-    return sendJson(res, 201, { feedback: newItem, savedBytes: saved.bytes, storageStats: getStorageStats() });
+    await writeData(data, `Thêm feedback mới: ${newItem.title}`);
+    const storageStats = await getStorageStats();
+    return sendJson(res, 201, { feedback: newItem, savedBytes: saved.bytes, storageStats });
   }
 
   const fbMatch = /^\/api\/feedbacks\/([a-zA-Z0-9_-]+)$/.exec(pathname);
   if (fbMatch) {
     if (!requireAdmin(req, res)) return;
     const id = fbMatch[1];
-    const data = readData();
+    const data = await readData({ fresh: true });
     const idx = data.feedbacks.findIndex((item) => item.id === id);
     if (idx === -1) {
       return sendJson(res, 404, { error: 'Không tìm thấy feedback.' });
@@ -401,21 +650,16 @@ async function handleApi(req, res, pathname) {
         date: /^\d{4}-\d{2}-\d{2}$/.test(body.date || '') ? body.date : current.date,
         featured: body.featured !== undefined ? Boolean(body.featured) : current.featured
       };
-      writeData(data);
+      await writeData(data, `Cập nhật feedback: ${data.feedbacks[idx].title}`);
       return sendJson(res, 200, { feedback: data.feedbacks[idx] });
     }
 
     if (req.method === 'DELETE') {
       const [removed] = data.feedbacks.splice(idx, 1);
-      writeData(data);
-      if (removed.imageUrl && removed.imageUrl.startsWith('/uploads/feedbacks/')) {
-        const fileName = path.basename(removed.imageUrl);
-        const target = path.join(UPLOAD_DIR, fileName);
-        if (fs.existsSync(target)) {
-          fs.unlinkSync(target);
-        }
-      }
-      return sendJson(res, 200, { deletedId: id, storageStats: getStorageStats() });
+      await writeData(data, `Xóa feedback: ${removed.title || id}`);
+      await deleteUploadedImage(removed.imageUrl);
+      const storageStats = await getStorageStats();
+      return sendJson(res, 200, { deletedId: id, storageStats });
     }
   }
 
@@ -425,7 +669,7 @@ async function handleApi(req, res, pathname) {
     if (!String(body.title || '').trim() || !String(body.content || '').trim()) {
       return sendJson(res, 400, { error: 'Vui lòng nhập đầy đủ tiêu đề và nội dung bài viết.' });
     }
-    const data = readData();
+    const data = await readData({ fresh: true });
     const article = {
       id: `art-${crypto.randomUUID().slice(0, 8)}`,
       category: normalizeCategory(body.category),
@@ -436,7 +680,7 @@ async function handleApi(req, res, pathname) {
       readTime: String(body.readTime || '4 phút đọc').trim()
     };
     data.articles.unshift(article);
-    writeData(data);
+    await writeData(data, `Đăng bài viết: ${article.title}`);
     return sendJson(res, 201, { article });
   }
 
@@ -444,7 +688,7 @@ async function handleApi(req, res, pathname) {
   if (artMatch) {
     if (!requireAdmin(req, res)) return;
     const id = artMatch[1];
-    const data = readData();
+    const data = await readData({ fresh: true });
     const idx = data.articles.findIndex((item) => item.id === id);
     if (idx === -1) {
       return sendJson(res, 404, { error: 'Không tìm thấy bài viết.' });
@@ -462,39 +706,46 @@ async function handleApi(req, res, pathname) {
         date: /^\d{4}-\d{2}-\d{2}$/.test(body.date || '') ? body.date : current.date,
         readTime: body.readTime !== undefined ? String(body.readTime).trim() : current.readTime
       };
-      writeData(data);
+      await writeData(data, `Cập nhật bài viết: ${data.articles[idx].title}`);
       return sendJson(res, 200, { article: data.articles[idx] });
     }
 
     if (req.method === 'DELETE') {
-      data.articles.splice(idx, 1);
-      writeData(data);
+      const [removed] = data.articles.splice(idx, 1);
+      await writeData(data, `Xóa bài viết: ${removed.title || id}`);
       return sendJson(res, 200, { deletedId: id });
     }
   }
 
   if (pathname === '/api/sync-folder' && req.method === 'POST') {
     if (!requireAdmin(req, res)) return;
-    const result = syncFeedbackFolder();
-    const data = readData();
+    assertWritableEnvironment();
+    const result = await syncFeedbackFolder();
+    const data = await readData();
+    const storageStats = await getStorageStats();
     return sendJson(res, 200, {
       ...result,
       feedbacks: sortByDateDesc(data.feedbacks),
-      storageStats: getStorageStats()
+      storageStats
     });
   }
 
   if (pathname === '/api/backup' && req.method === 'GET') {
     if (!requireAdmin(req, res)) return;
-    const data = readData();
+    const data = await readData({ fresh: true });
     const files = {};
-    const entries = fs.readdirSync(UPLOAD_DIR, { withFileTypes: true });
-    for (const entry of entries) {
-      if (!entry.isFile()) continue;
-      const ext = path.extname(entry.name).toLowerCase();
-      if (!IMAGE_EXTENSIONS.has(ext)) continue;
-      files[entry.name] = fs.readFileSync(path.join(UPLOAD_DIR, entry.name)).toString('base64');
+    const uploadFiles = await listUploadFiles();
+
+    for (const entry of uploadFiles) {
+      if (USE_GITHUB) {
+        const buf = await githubGetRawBuffer(`data/uploads/feedbacks/${entry.name}`);
+        if (buf) files[entry.name] = buf.toString('base64');
+      } else {
+        const p = path.join(UPLOAD_DIR, entry.name);
+        if (fs.existsSync(p)) files[entry.name] = fs.readFileSync(p).toString('base64');
+      }
     }
+
     const backup = {
       version: 1,
       exportedAt: new Date().toISOString(),
@@ -509,11 +760,11 @@ async function handleApi(req, res, pathname) {
 
   if (pathname === '/api/restore' && req.method === 'POST') {
     if (!requireAdmin(req, res)) return;
+    assertWritableEnvironment();
     const body = await readJsonBody(req, 60 * 1024 * 1024);
     if (!body || !body.data || typeof body.data !== 'object') {
       return sendJson(res, 400, { error: 'File sao lưu không đúng định dạng.' });
     }
-    ensureDataSetup();
 
     const files = body.files && typeof body.files === 'object' ? body.files : {};
     let restoredFiles = 0;
@@ -521,35 +772,36 @@ async function handleApi(req, res, pathname) {
       const safeName = path.basename(rawName);
       const ext = path.extname(safeName).toLowerCase();
       if (!IMAGE_EXTENSIONS.has(ext) || typeof base64Content !== 'string') continue;
-      fs.writeFileSync(path.join(UPLOAD_DIR, safeName), Buffer.from(base64Content, 'base64'));
+      const buf = Buffer.from(base64Content, 'base64');
+      if (USE_GITHUB) {
+        await githubPutFile(`data/uploads/feedbacks/${safeName}`, buf, `Khôi phục ảnh ${safeName}`);
+      } else {
+        ensureLocalDataSetup();
+        fs.writeFileSync(path.join(UPLOAD_DIR, safeName), buf);
+      }
       restoredFiles += 1;
     }
 
-    const restoredData = {
-      profile: body.data.profile || {},
-      feedbacks: Array.isArray(body.data.feedbacks) ? body.data.feedbacks : [],
-      articles: Array.isArray(body.data.articles) ? body.data.articles : []
-    };
-    writeData(restoredData);
+    const restoredData = normalizeDataShape(body.data);
+    await writeData(restoredData, 'Khôi phục dữ liệu từ file sao lưu');
+    const storageStats = await getStorageStats();
 
     return sendJson(res, 200, {
       restoredFiles,
       feedbackCount: restoredData.feedbacks.length,
       articleCount: restoredData.articles.length,
-      storageStats: getStorageStats()
+      storageStats
     });
   }
 
   return sendJson(res, 404, { error: 'API endpoint không tồn tại.' });
 }
 
-ensureDataSetup();
-syncFeedbackFolder();
-
-const server = http.createServer(async (req, res) => {
+async function requestHandler(req, res) {
   try {
     const reqUrl = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
-    const pathname = decodeURIComponent(reqUrl.pathname);
+    const rewrittenPath = reqUrl.searchParams.get('__path');
+    const pathname = decodeURIComponent(rewrittenPath || reqUrl.pathname);
 
     if (pathname.startsWith('/api/')) {
       await handleApi(req, res, pathname);
@@ -557,19 +809,31 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (pathname === '/' || pathname === '/index.html') {
-      return serveStaticFile(res, PUBLIC_DIR, 'index.html', 'no-cache');
+      if (!serveStaticFile(res, PUBLIC_DIR, 'index.html', 'no-cache')) {
+        res.writeHead(404);
+        res.end('Not Found');
+      }
+      return;
     }
 
     if (pathname === '/admin' || pathname === '/admin/') {
-      return serveStaticFile(res, PUBLIC_DIR, 'admin.html', 'no-cache');
+      if (!serveStaticFile(res, PUBLIC_DIR, 'admin.html', 'no-cache')) {
+        res.writeHead(404);
+        res.end('Not Found');
+      }
+      return;
     }
 
     if (pathname.startsWith('/uploads/feedbacks/')) {
       const rel = pathname.slice('/uploads/feedbacks/'.length);
-      return serveStaticFile(res, UPLOAD_DIR, rel, 'public, max-age=86400');
+      await serveUploadedImage(res, rel);
+      return;
     }
 
-    return serveStaticFile(res, PUBLIC_DIR, pathname.replace(/^\/+/, ''));
+    if (!serveStaticFile(res, PUBLIC_DIR, pathname.replace(/^\/+/, ''))) {
+      res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('Not Found');
+    }
   } catch (err) {
     const status = err.statusCode || 500;
     console.error('[Server Error]', err);
@@ -577,9 +841,15 @@ const server = http.createServer(async (req, res) => {
       sendJson(res, status, { error: err.message || 'Lỗi máy chủ nội bộ.' });
     }
   }
-});
+}
 
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Blog Bùi Công Đam đang chạy tại http://0.0.0.0:${PORT}`);
-  console.log(`Trang quản trị: /admin`);
-});
+if (require.main === module) {
+  ensureLocalDataSetup();
+  const server = http.createServer(requestHandler);
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`Blog Bùi Công Đam đang chạy tại http://localhost:${PORT}`);
+    console.log(`Trang quản trị: http://localhost:${PORT}/admin`);
+  });
+}
+
+module.exports = requestHandler;

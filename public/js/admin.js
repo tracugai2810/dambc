@@ -108,7 +108,13 @@
 
   function renderStats() {
     const st = state.data.storageStats || {};
-    els.storageBadge.textContent = `Kho ảnh: ${st.imageCount || 0} ảnh (${st.totalMB || 0} MB)`;
+    let modeLabel = 'Ổ cứng cục bộ';
+    if (st.mode === 'github') {
+      modeLabel = `GitHub (${st.repo || 'đã kết nối'})`;
+    } else if (st.mode === 'vercel-readonly') {
+      modeLabel = 'Chưa gắn GITHUB_TOKEN trên Vercel';
+    }
+    els.storageBadge.textContent = `Kho ảnh: ${st.imageCount || 0} ảnh (${st.totalMB || 0} MB) • Lưu tại: ${modeLabel}`;
   }
 
   function renderFeedbackList() {

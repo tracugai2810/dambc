@@ -2,11 +2,7 @@
 node_modules/
 .env
 .env.local
-
-# Dữ liệu thực tế trên Hosting (tách khỏi Git để git pull không ghi đè dữ liệu)
-data/data.json
-data/uploads/feedbacks/*
-!data/uploads/feedbacks/.gitkeep
+.vercel
 
 # OS & Editor files
 .DS_Store
