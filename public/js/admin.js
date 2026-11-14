@@ -254,9 +254,9 @@
     const item = getActiveImage();
     if (!item) return;
     delete item.existingUrl;
-    let dataUrl = els.blurCanvas.toDataURL('image/webp', 0.82);
+    let dataUrl = els.blurCanvas.toDataURL('image/webp', 0.95);
     if (!dataUrl.startsWith('data:image/webp')) {
-      dataUrl = els.blurCanvas.toDataURL('image/jpeg', 0.84);
+      dataUrl = els.blurCanvas.toDataURL('image/jpeg', 0.95);
     }
     item.compressedWebpDataUrl = dataUrl;
     const base64Len = dataUrl.split(',')[1]?.length || 0;
@@ -354,7 +354,7 @@
       reader.onload = () => {
         const img = new Image();
         img.onload = () => {
-          const maxW = 1200;
+          const maxW = 2048;
           const scale = img.width > maxW ? maxW / img.width : 1;
           const w = Math.round(img.width * scale);
           const h = Math.round(img.height * scale);
@@ -363,11 +363,13 @@
           offCanvas.width = w;
           offCanvas.height = h;
           const offCtx = offCanvas.getContext('2d');
+          offCtx.imageSmoothingEnabled = true;
+          offCtx.imageSmoothingQuality = 'high';
           offCtx.drawImage(img, 0, 0, w, h);
 
-          let dataUrl = offCanvas.toDataURL('image/webp', 0.82);
+          let dataUrl = offCanvas.toDataURL('image/webp', 0.95);
           if (!dataUrl.startsWith('data:image/webp')) {
-            dataUrl = offCanvas.toDataURL('image/jpeg', 0.84);
+            dataUrl = offCanvas.toDataURL('image/jpeg', 0.95);
           }
           const base64Len = dataUrl.split(',')[1]?.length || 0;
           const compressedBytes = Math.round((base64Len * 3) / 4);

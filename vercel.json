@@ -14,16 +14,16 @@
       "destination": "/admin.html"
     },
     {
+      "source": "/api/:path((?!index).*)",
+      "destination": "/api/index?__path=/api/:path*"
+    },
+    {
       "source": "/robots.txt",
       "destination": "/api/index?__path=/robots.txt"
     },
     {
       "source": "/sitemap.xml",
       "destination": "/api/index?__path=/sitemap.xml"
-    },
-    {
-      "source": "/api/:path*",
-      "destination": "/api/index?__path=/api/:path*"
     },
     {
       "source": "/uploads/feedbacks/:filename",

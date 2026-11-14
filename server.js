@@ -613,12 +613,16 @@ async function serveSitemapXml(req, res) {
   const images = [
     {
       loc: `${origin}/logo-dam.png`,
-      title: 'Logo Bùi Công Đam — Tử Vi Đẩu Số & Lục Hào Kinh Dịch'
+      title: 'Ấn chương Bùi Công Đam — Tử Vi Đẩu Số & Lục Hào Kinh Dịch'
     }
   ];
   for (const fb of data.feedbacks || []) {
     const urls = Array.isArray(fb.imageUrls) && fb.imageUrls.length > 0 ? fb.imageUrls : (fb.imageUrl ? [fb.imageUrl] : []);
-    const title = `${fb.category || 'Tử Vi'} - ${fb.topic || fb.title || 'Feedback thực chứng'}`;
+    const cat = String(fb.category || 'Tử Vi').trim();
+    const topic = String(fb.topic || fb.title || '').trim();
+    const title = !topic
+      ? `Luận giải ${cat}`
+      : (topic.toLowerCase().includes(cat.toLowerCase()) ? topic : `${topic} — ${cat}`);
     for (const u of urls) {
       if (!u) continue;
       const absUrl = u.startsWith('http') ? u : `${origin}${u}`;
@@ -1088,7 +1092,11 @@ async function requestHandler(req, res) {
   try {
     const reqUrl = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
     const allPaths = reqUrl.searchParams.getAll('__path');
-    const rewrittenPath = allPaths.find((p) => p && p !== '/api/index' && p !== '/api/index.js') || allPaths[0] || null;
+    const matchedHeader = String(req.headers['x-matched-path'] || '').trim();
+    const validHeaderPath =
+      matchedHeader && matchedHeader !== '/api/index' && matchedHeader !== '/api/index.js' ? matchedHeader : null;
+    const rewrittenPath =
+      allPaths.find((p) => p && p !== '/api/index' && p !== '/api/index.js') || allPaths[0] || validHeaderPath;
     const pathname = decodeURIComponent(rewrittenPath || reqUrl.pathname);
 
     if (pathname.startsWith('/api/')) {

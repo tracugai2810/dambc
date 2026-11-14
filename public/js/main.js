@@ -104,6 +104,18 @@
     return zaloRaw.startsWith('http') ? zaloRaw : `https://zalo.me/${zaloRaw.replace(/\s+/g, '')}`;
   }
 
+  function formatPhoneDisplay(phone) {
+    const raw = String(phone || '').trim();
+    const digits = raw.replace(/\D/g, '');
+    if (digits.length === 10) {
+      return digits.replace(/^(\d{4})(\d{3})(\d{3})$/, '$1 $2 $3');
+    }
+    if (digits.length === 11) {
+      return digits.replace(/^(\d{4})(\d{3})(\d{4})$/, '$1 $2 $3');
+    }
+    return raw;
+  }
+
   function renderProfile() {
     const p = state.profile || {};
     const name = p.name || 'Bùi Công Đam';
@@ -147,17 +159,16 @@
     if (els.bookingCards) {
       const cards = [];
       if (contact.zalo) {
+        const displayZalo = formatPhoneDisplay(contact.zalo);
         cards.push(`
           <div class="booking-card booking-card--zalo">
             <div class="booking-card-top">
-              <div>
-                <div class="booking-card-label">Zalo Đặt Lịch Trực Tiếp</div>
-                <div class="booking-card-val">${escapeHtml(contact.zalo)}</div>
-              </div>
-              <button type="button" class="btn btn-secondary btn-sm" data-copy-text="${escapeHtml(contact.zalo)}">Sao chép SĐT</button>
+              <span class="booking-card-label">Zalo đặt lịch trực tiếp</span>
+              <button type="button" class="btn btn-secondary btn-sm booking-copy-btn" data-copy-text="${escapeHtml(contact.zalo)}">Sao chép số</button>
             </div>
-            <a href="${escapeHtml(zaloHref)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="width: 100%;">
-              Nhắn Zalo Đặt Lịch Ngay
+            <div class="booking-card-val">${escapeHtml(displayZalo)}</div>
+            <a href="${escapeHtml(zaloHref)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary booking-cta-full">
+              Nhắn Zalo đặt lịch ngay
             </a>
           </div>
         `);
@@ -165,15 +176,13 @@
       if (contact.facebook) {
         cards.push(`
           <div class="booking-card">
-            <div class="booking-card-top">
-              <div>
-                <div class="booking-card-label">Facebook Cá Nhân</div>
-                <div class="booking-card-sub">Theo dõi bài nghiệm lý &amp; nhắn tin trao đổi</div>
-              </div>
-              <a href="${escapeHtml(contact.facebook)}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
-                Mở Facebook
-              </a>
+            <div class="booking-card-info">
+              <div class="booking-card-label">Facebook cá nhân</div>
+              <div class="booking-card-sub">Theo dõi bài nghiệm lý &amp; nhắn tin trao đổi trực tiếp</div>
             </div>
+            <a href="${escapeHtml(contact.facebook)}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary booking-cta-full">
+              Mở trang Facebook
+            </a>
           </div>
         `);
       }
@@ -218,6 +227,14 @@
     return item?.imageUrl ? [item.imageUrl] : [];
   }
 
+  function buildFeedbackAlt(item) {
+    const cat = (item?.category || 'Tử Vi').trim();
+    const topic = (item?.topic || item?.title || '').trim();
+    if (!topic) return `Luận giải ${cat}`;
+    if (topic.toLowerCase().includes(cat.toLowerCase())) return topic;
+    return `${topic} — ${cat}`;
+  }
+
   function renderFeedbacks() {
     const q = state.fbQuery.trim().toLowerCase();
     const list = state.feedbacks.filter((item) => {
@@ -236,12 +253,12 @@
         const mainImg = imgs[0] || '';
         const topicText = item.topic || item.title || 'Nghiệm lý thực tế';
         const extraNote = item.note && item.note.trim().toLowerCase() !== topicText.trim().toLowerCase() ? item.note.trim() : '';
-        const seoAlt = `Feedback ${item.category || 'Tử Vi'} - ${topicText}${extraNote ? ' - ' + extraNote.slice(0, 80) : ''} - Bùi Công Đam`;
+        const seoAlt = buildFeedbackAlt(item);
 
         const thumbsHtml = imgs.length > 1
           ? `<div class="feedback-thumbs">${imgs.map((url, subIdx) => `
               <button type="button" class="feedback-thumb-btn" data-open-lightbox="${idx}" data-img-index="${subIdx}" aria-label="Xem ảnh ${subIdx + 1} của ${escapeHtml(topicText)}">
-                <img src="${escapeHtml(url)}" alt="${escapeHtml(seoAlt)} (ảnh ${subIdx + 1})" loading="lazy" />
+                <img src="${escapeHtml(url)}" alt="Xem hình ${subIdx + 1} - ${escapeHtml(topicText)}" loading="lazy" />
               </button>
             `).join('')}</div>`
           : '';
@@ -321,7 +338,7 @@
     const hasDistinctNote = Boolean(cleanNote) && cleanNote.toLowerCase() !== displayTitle.trim().toLowerCase();
 
     els.lightboxImg.src = imgs[subIdx] || '';
-    els.lightboxImg.alt = `Feedback ${item.category || 'Tử Vi'} - ${displayTitle}`;
+    els.lightboxImg.alt = buildFeedbackAlt(item);
     els.lightboxImg.style.transform = `scale(${state.zoom})`;
     els.lbZoomLabel.textContent = `${Math.round(state.zoom * 100)}%`;
     els.lightboxBadges.innerHTML = `${categoryBadge(item.category)}${item.topic ? `<span class="badge badge-topic">${escapeHtml(item.topic)}</span>` : ''}`;
@@ -340,7 +357,7 @@
       els.lightboxThumbs.innerHTML = imgs
         .map((url, idx) => `
           <button type="button" class="lightbox-thumb-btn ${idx === subIdx ? 'active' : ''}" data-lb-sub="${idx}" aria-label="Xem ảnh ${idx + 1}">
-            <img src="${escapeHtml(url)}" alt="" />
+            <img src="${escapeHtml(url)}" alt="Xem hình ${idx + 1} - ${escapeHtml(displayTitle)}" />
           </button>
         `)
         .join('');
