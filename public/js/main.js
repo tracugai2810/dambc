@@ -177,21 +177,6 @@
           </div>
         `);
       }
-      if (contact.email) {
-        cards.push(`
-          <div class="booking-card">
-            <div class="booking-card-top">
-              <div>
-                <div class="booking-card-label">Hộp Thư Email</div>
-                <div class="booking-card-val" style="font-size: 0.94rem;">${escapeHtml(contact.email)}</div>
-              </div>
-              <a href="mailto:${escapeHtml(contact.email)}" class="btn btn-secondary btn-sm">
-                Gửi Email
-              </a>
-            </div>
-          </div>
-        `);
-      }
       els.bookingCards.innerHTML = cards.join('');
     }
 
@@ -209,19 +194,16 @@
     if (contact.zalo) {
       pills.push(`<a href="${escapeHtml(zaloHref)}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">Zalo: ${escapeHtml(contact.zalo)}</a>`);
     }
-    if (contact.email) {
-      pills.push(`<a href="mailto:${escapeHtml(contact.email)}" class="btn btn-secondary btn-sm">${escapeHtml(contact.email)}</a>`);
-    }
-    pills.push(`<a href="https://luchao.io.vn/" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">Lập Lá Số &amp; Quẻ (luchao.io.vn)</a>`);
-    pills.push(`<a href="https://gieoque.id.vn/" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">Gieo Quẻ Nhanh (gieoque.id.vn)</a>`);
+    pills.push(`<a href="https://luchao.io.vn/" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">luchao.io.vn</a>`);
+    pills.push(`<a href="https://gieoque.id.vn/" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">gieoque.id.vn</a>`);
     els.contactLinks.innerHTML = pills.join('');
 
     const total = state.feedbacks.length;
     const lucHaoCount = state.feedbacks.filter((f) => f.category === 'Lục Hào').length;
     const tuViCount = state.feedbacks.filter((f) => f.category === 'Tử Vi').length;
-    els.statTotalFeedbacks.textContent = String(total);
-    els.statLucHao.textContent = String(lucHaoCount);
-    els.statTuVi.textContent = String(tuViCount);
+    if (els.statTotalFeedbacks) els.statTotalFeedbacks.textContent = String(total);
+    if (els.statLucHao) els.statLucHao.textContent = String(lucHaoCount);
+    if (els.statTuVi) els.statTuVi.textContent = String(tuViCount);
   }
 
   function categoryBadge(category) {
@@ -432,18 +414,6 @@
         btn.classList.add('active');
         state.artFilter = btn.getAttribute('data-art-filter');
         renderArticles();
-      });
-    });
-
-    document.querySelectorAll('[data-tool-filter]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const filterVal = btn.getAttribute('data-tool-filter');
-        document.querySelectorAll('[data-tool-filter]').forEach((b) => b.classList.remove('active'));
-        btn.classList.add('active');
-        document.querySelectorAll('.tool-card[data-tool-id]').forEach((card) => {
-          const matched = filterVal === 'all' || card.getAttribute('data-tool-id') === filterVal;
-          card.classList.toggle('hidden', !matched);
-        });
       });
     });
 

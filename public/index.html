@@ -41,7 +41,7 @@
     <div class="container header-inner">
       <a href="#top" class="brand-link" aria-label="Trang chủ Bùi Công Đam">
         <span class="brand-logo-wrap">
-          <img src="/logo-dam.png" alt="Logo Bùi Công Đam" width="38" height="38" />
+          <img src="/logo-dam.png" alt="Logo Bùi Công Đam" />
         </span>
         <span class="brand-text-wrap">
           <span class="brand-name" id="headerName">Bùi Công Đam</span>
@@ -54,19 +54,10 @@
           <a href="#about" class="nav-link">Giới thiệu</a>
           <a href="#feedbacks" class="nav-link">Thực chứng</a>
           <a href="#articles" class="nav-link">Bài viết</a>
-          <a href="#tools" class="nav-link">Công cụ Huyền học</a>
-          <a href="#booking" class="nav-link">Đặt lịch</a>
+          <a href="#tools" class="nav-link">Công cụ</a>
         </nav>
 
-        <a href="#booking" class="btn btn-primary btn-sm nav-book-btn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <rect x="3" y="4" width="18" height="18" rx="2"></rect>
-            <line x1="16" y1="2" x2="16" y2="6"></line>
-            <line x1="8" y1="2" x2="8" y2="6"></line>
-            <line x1="3" y1="10" x2="21" y2="10"></line>
-          </svg>
-          Đặt lịch xem
-        </a>
+        <a href="#booking" class="btn btn-primary btn-sm nav-book-btn">Đặt lịch</a>
 
         <button id="themeToggle" class="icon-btn" type="button" aria-label="Chuyển đổi giao diện Sáng hoặc Tối" title="Đổi giao diện Sáng / Tối">
           <svg id="themeIconSun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -82,47 +73,15 @@
   </header>
 
   <main id="top">
-    <!-- Hero Sơn Thủy Hữu Tình & Logo Ngọc Bích -->
+    <!-- Hero Phong Cảnh Sơn Thủy & Logo -->
     <section id="about" class="hero-landscape-section">
-      <!-- Lớp nền phong cảnh núi non - mây trời - sông nước -->
-      <svg class="hero-landscape-svg" viewBox="0 0 1440 520" preserveAspectRatio="none" aria-hidden="true">
-        <defs>
-          <linearGradient id="skyMistGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#E4F4EC" stop-opacity="0.72" />
-            <stop offset="55%" stop-color="#F2FAF6" stop-opacity="0.4" />
-            <stop offset="100%" stop-color="#F2F8F5" stop-opacity="0" />
-          </linearGradient>
-          <linearGradient id="farMountain" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#76B797" stop-opacity="0.26" />
-            <stop offset="100%" stop-color="#CBE7D9" stop-opacity="0.04" />
-          </linearGradient>
-          <linearGradient id="midMountain" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#2B8A5E" stop-opacity="0.2" />
-            <stop offset="100%" stop-color="#8FD0B2" stop-opacity="0.03" />
-          </linearGradient>
-          <linearGradient id="riverFlow" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stop-color="#0F6D42" stop-opacity="0.08" />
-            <stop offset="50%" stop-color="#38A173" stop-opacity="0.14" />
-            <stop offset="100%" stop-color="#C89F3D" stop-opacity="0.08" />
-          </linearGradient>
-        </defs>
-        <rect width="1440" height="520" fill="url(#skyMistGrad)" />
-        <!-- Ánh mặt trời dịu nhẹ sau làn mây -->
-        <circle cx="1110" cy="140" r="95" fill="#E6C667" fill-opacity="0.16" />
-        <circle cx="1110" cy="140" r="140" fill="#E6C667" fill-opacity="0.06" />
-        <!-- Dãy núi xa trùng điệp -->
-        <path d="M0,330 Q180,220 380,295 T780,255 T1160,210 T1440,280 L1440,520 L0,520 Z" fill="url(#farMountain)" />
-        <!-- Dãy núi ngọc gần sườn sông -->
-        <path d="M0,395 Q220,295 450,355 T920,320 T1290,290 T1440,340 L1440,520 L0,520 Z" fill="url(#midMountain)" />
-        <!-- Dòng nước uốn lượn mềm mại -->
-        <path d="M0,430 C320,390 540,468 880,425 C1120,395 1280,445 1440,415 L1440,520 L0,520 Z" fill="url(#riverFlow)" />
-        <path d="M0,462 C360,428 660,492 1020,448 C1220,425 1350,465 1440,450 L1440,520 L0,520 Z" fill="#0F6D42" fill-opacity="0.06" />
-      </svg>
+      <!-- Lớp nền ảnh phong cảnh sơn thủy mờ sương tĩnh lặng -->
+      <div class="hero-banner-bg" aria-hidden="true"></div>
 
       <div class="container hero-jade-inner">
         <div class="hero-jade-grid">
           <div class="hero-jade-copy">
-            <div class="editorial-eyebrow">Sơn Thủy Tĩnh Tâm &bull; Hồ Sơ Thực Chứng</div>
+            <div class="editorial-eyebrow">Tử Vi Đẩu Số &bull; Lục Hào Kinh Dịch</div>
             <h1 class="hero-title" id="heroName">Bùi Công Đam</h1>
 
             <p class="hero-bio" id="heroBio">
@@ -135,46 +94,19 @@
 
             <div class="hero-actions">
               <a href="#booking" class="btn btn-primary">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
-                </svg>
-                Đặt Lịch Luận Giải
+                Đặt lịch luận giải
               </a>
               <a href="#feedbacks" class="btn btn-secondary">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                  <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                  <path d="M21 15l-5-5L5 21"></path>
-                </svg>
-                Xem Kho Thực Chứng
+                Xem thực chứng
               </a>
-              <a href="#tools" class="btn btn-ghost">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                  <circle cx="12" cy="12" r="9"></circle>
-                  <path d="M12 3v18M3 12h18"></path>
-                </svg>
-                Công Cụ Lập Lá Số &amp; Gieo Quẻ
-              </a>
-            </div>
-
-            <div class="hero-bottom-meta">
-              <div class="archival-stats" aria-label="Thống kê lưu trữ">
-                <span><strong id="statTotalFeedbacks">0</strong> ca lưu trữ</span>
-                <span class="stat-sep" aria-hidden="true">&middot;</span>
-                <span><strong id="statTuVi">0</strong> Tử Vi</span>
-                <span class="stat-sep" aria-hidden="true">&middot;</span>
-                <span><strong id="statLucHao">0</strong> Lục Hào</span>
-              </div>
-              <div id="heroQuickContacts" class="hero-quick-contacts"></div>
             </div>
           </div>
 
           <div class="hero-logo-stage">
             <div class="jade-medallion">
-              <div class="jade-medallion-halo" aria-hidden="true"></div>
               <img src="/logo-dam.png" alt="Logo Chữ Đam Ngọc Bích Rồng Mây — Bùi Công Đam" class="hero-logo-img" />
             </div>
-            <div class="hero-logo-caption">Tử Vi Đẩu Số &bull; Lục Hào Kinh Dịch</div>
+            <div class="hero-logo-caption">Ấn chương Bùi Công Đam</div>
           </div>
         </div>
       </div>
@@ -188,12 +120,12 @@
     </section>
 
     <div class="container">
-      <!-- Thư viện Feedback -->
+      <!-- Phản hồi thực chứng -->
       <section id="feedbacks" class="content-section" aria-labelledby="feedbacksHeading">
         <div class="section-header">
           <div>
-            <h2 class="section-title" id="feedbacksHeading">Thư Viện Feedback Thực Chứng</h2>
-            <p class="section-subtitle">Tổng hợp phản hồi của đương số sau khi luận giải. Bấm vào từng ảnh để phóng to đọc chi tiết.</p>
+            <h2 class="section-title" id="feedbacksHeading">Phản Hồi Thực Chứng</h2>
+            <p class="section-subtitle">Tổng hợp phản hồi thực tế sau khi luận giải. Bấm vào từng ảnh để xem chi tiết.</p>
           </div>
         </div>
 
@@ -209,13 +141,13 @@
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
-            <input id="feedbackSearch" class="search-input" type="search" placeholder="Tìm từ khóa (công việc, giờ sinh, tìm đồ...)" aria-label="Tìm kiếm feedback" />
+            <input id="feedbackSearch" class="search-input" type="search" placeholder="Tìm theo chủ đề (công việc, giờ sinh, hôn nhân...)" aria-label="Tìm kiếm feedback" />
           </div>
         </div>
 
         <div id="feedbackGrid" class="masonry-grid"></div>
         <div id="feedbackEmpty" class="empty-state hidden">
-          Chưa tìm thấy feedback nào phù hợp với bộ lọc hiện tại.
+          Chưa tìm thấy phản hồi nào phù hợp với bộ lọc hiện tại.
         </div>
       </section>
 
@@ -231,8 +163,8 @@
       <section id="articles" class="content-section" aria-labelledby="articlesHeading">
         <div class="section-header">
           <div>
-            <h2 class="section-title" id="articlesHeading">Ghi Chép &amp; Bài Viết Nghiệm Lý</h2>
-            <p class="section-subtitle">Phân tích chuyên sâu các quẻ dịch và lá số đáng nhớ trong quá trình nghiên cứu.</p>
+            <h2 class="section-title" id="articlesHeading">Ghi Chép Nghiệm Lý</h2>
+            <p class="section-subtitle">Phân tích các lá số Tử Vi và quẻ Lục Hào đáng chú ý qua thực tiễn.</p>
           </div>
 
           <div class="filter-tabs" role="tablist" aria-label="Lọc bài viết theo bộ môn">
@@ -260,22 +192,15 @@
       <section id="tools" class="content-section tools-section" aria-labelledby="toolsHeading">
         <div class="section-header">
           <div>
-            <div class="editorial-eyebrow">Hệ Sinh Thái Công Cụ Trực Tuyến</div>
             <h2 class="section-title" id="toolsHeading">Công Cụ Hỗ Trợ Huyền Học</h2>
             <p class="section-subtitle">
-              Hai nền tảng trực tuyến giúp bạn chủ động lập lá số Tử Vi Bắc Phái, gieo quẻ Kinh Dịch Lục Hào và tra cứu Phong Thủy miễn phí mọi lúc mọi nơi.
+              Hai nền tảng trực tuyến miễn phí hỗ trợ lập lá số Tử Vi và gieo quẻ Lục Hào nhanh chóng.
             </p>
-          </div>
-
-          <div class="filter-tabs" role="tablist" aria-label="Chọn công cụ hỗ trợ huyền học">
-            <button type="button" class="filter-tab active" data-tool-filter="all">Tất cả công cụ</button>
-            <button type="button" class="filter-tab" data-tool-filter="luchao-io">Lập Lá Số &amp; Đa Công Cụ</button>
-            <button type="button" class="filter-tab" data-tool-filter="gieoque-id">Gieo Quẻ Lục Hào Nhanh</button>
           </div>
         </div>
 
         <div class="tools-grid">
-          <article class="tool-card tool-card--jade" data-tool-id="luchao-io">
+          <article class="tool-card tool-card--jade">
             <div class="tool-card-glow" aria-hidden="true"></div>
             <div class="tool-card-head">
               <span class="tool-icon-box" aria-hidden="true">
@@ -286,33 +211,18 @@
                   <circle cx="12" cy="16.5" r="0.8" fill="currentColor"></circle>
                 </svg>
               </span>
-              <span class="badge badge-tuvi">Đa Công Cụ Chuyên Sâu</span>
+              <span class="badge badge-tuvi">Đa công cụ</span>
               <span class="tool-domain-pill">luchao.io.vn</span>
             </div>
 
-            <h3 class="tool-title">Lập Quẻ Lục Hào, Tử Vi Bắc Phái &amp; Phong Thủy Online</h3>
+            <h3 class="tool-title">Lập Quẻ Lục Hào, Tử Vi &amp; Phong Thủy</h3>
             <p class="tool-desc">
-              Cổng công cụ huyền học trực tuyến chuẩn thiên văn: hỗ trợ lập lá số Tử Vi Bắc Phái (Phi Tinh Tứ Hóa), lập quẻ Kinh Dịch Lục Hào (3 đồng xu &amp; số seri tiền) và Phong Thủy Huyền Không Phi Tinh.
+              Hỗ trợ lập lá số Tử Vi Bắc Phái (Phi Tinh Tứ Hóa), lập quẻ Lục Hào bằng 3 đồng xu hoặc số seri tiền và tra cứu Huyền Không Phi Tinh.
             </p>
-
-            <ul class="tool-features">
-              <li class="tool-feature-item">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                <span>Lập lá số Tử Vi Bắc Phái &amp; Phi Tinh Tứ Hóa</span>
-              </li>
-              <li class="tool-feature-item">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                <span>Lập quẻ Lục Hào bằng 3 đồng xu hoặc số seri tiền</span>
-              </li>
-              <li class="tool-feature-item">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                <span>Tra cứu Phong Thủy Huyền Không Phi Tinh trực quan</span>
-              </li>
-            </ul>
 
             <div class="tool-card-footer">
               <a href="https://luchao.io.vn/" target="_blank" rel="noopener" class="btn btn-primary tool-cta-link">
-                <span>Mở Công Cụ luchao.io.vn</span>
+                <span>Mở luchao.io.vn</span>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                   <path d="M7 17L17 7"></path>
                   <polyline points="7 7 17 7 17 17"></polyline>
@@ -321,7 +231,7 @@
             </div>
           </article>
 
-          <article class="tool-card tool-card--gold" data-tool-id="gieoque-id">
+          <article class="tool-card tool-card--gold">
             <div class="tool-card-glow" aria-hidden="true"></div>
             <div class="tool-card-head">
               <span class="tool-icon-box" aria-hidden="true">
@@ -334,33 +244,18 @@
                   <line x1="14" y1="18" x2="20" y2="18"></line>
                 </svg>
               </span>
-              <span class="badge badge-topic">Khởi Quẻ Nhanh &amp; Trực Quan</span>
+              <span class="badge badge-topic">Gieo quẻ nhanh</span>
               <span class="tool-domain-pill">gieoque.id.vn</span>
             </div>
 
-            <h3 class="tool-title">Công Cụ Gieo Quẻ Lục Hào Kinh Dịch Miễn Phí</h3>
+            <h3 class="tool-title">Gieo Quẻ Lục Hào Kinh Dịch</h3>
             <p class="tool-desc">
-              Ứng dụng chuyên biệt giúp đương số tĩnh tâm tung 3 đồng xu gieo quẻ Lục Hào từng hào trực tuyến, tự động an quẻ gốc, quẻ biến, lục thân và thần sát chuẩn xác.
+              Mô phỏng tung 3 đồng xu qua 6 hào trực quan, tự động an quẻ gốc, hào động, quẻ biến và lục thân để xem nhanh hoặc chụp gửi luận giải.
             </p>
-
-            <ul class="tool-features">
-              <li class="tool-feature-item">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                <span>Mô phỏng gieo 3 đồng xu trực quan qua 6 lần tung</span>
-              </li>
-              <li class="tool-feature-item">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                <span>Tự động lập bảng chi tiết quẻ gốc, hào động &amp; quẻ biến</span>
-              </li>
-              <li class="tool-feature-item">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                <span>Thuận tiện chụp ảnh kết quả quẻ gửi đặt lịch luận giải</span>
-              </li>
-            </ul>
 
             <div class="tool-card-footer">
               <a href="https://gieoque.id.vn/" target="_blank" rel="noopener" class="btn btn-primary tool-cta-link">
-                <span>Mở Công Cụ gieoque.id.vn</span>
+                <span>Mở gieoque.id.vn</span>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                   <path d="M7 17L17 7"></path>
                   <polyline points="7 7 17 7 17 17"></polyline>
@@ -368,17 +263,6 @@
               </a>
             </div>
           </article>
-        </div>
-
-        <div class="tools-tip-banner">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="16" x2="12" y2="12"></line>
-            <line x1="12" y1="8" x2="12.01" y2="8"></line>
-          </svg>
-          <span>
-            <strong>Mẹo đặt lịch nhanh:</strong> Bạn có thể tự lập lá số tại <a href="https://luchao.io.vn/" target="_blank" rel="noopener">luchao.io.vn</a> hoặc gieo quẻ tại <a href="https://gieoque.id.vn/" target="_blank" rel="noopener">gieoque.id.vn</a>, sau đó chụp ảnh kết quả gửi qua <a href="#booking">Zalo / Facebook bên dưới</a> để được luận giải nhanh chóng.
-          </span>
         </div>
       </section>
 
@@ -400,10 +284,9 @@
 
           <div class="booking-grid">
             <div class="booking-info">
-              <div class="editorial-eyebrow">Hữu Duyên Trao Đổi &amp; Tư Vấn Riêng</div>
-              <h2 class="section-title" id="bookingHeading">Đặt Lịch Luận Giải Tử Vi &amp; Lục Hào</h2>
+              <h2 class="section-title" id="bookingHeading">Đặt Lịch Luận Giải</h2>
               <p class="booking-desc">
-                Trao đổi trực tiếp để được luận giải chi tiết lá số Tử Vi hoặc gieo quẻ Lục Hào theo từng câu hỏi thực tế. Giữ tâm tĩnh lặng, rõ ràng sự việc trước khi hỏi quẻ để có độ ứng nghiệm cao nhất.
+                Trao đổi trực tiếp để luận giải chi tiết lá số Tử Vi hoặc gieo quẻ Lục Hào theo từng vấn đề cụ thể.
               </p>
 
               <div class="booking-services">
@@ -441,12 +324,9 @@
 
             <div class="booking-panel">
               <div class="booking-panel-head">
-                <span class="brand-logo-wrap">
-                  <img src="/logo-dam.png" alt="" width="40" height="40" />
-                </span>
                 <div>
-                  <h3 class="booking-panel-title">Thông Tin Liên Hệ &amp; Đặt Lịch</h3>
-                  <div class="booking-panel-sub">Nhắn trực tiếp qua Zalo hoặc Facebook để sắp lịch</div>
+                  <h3 class="booking-panel-title">Thông Tin Liên Hệ</h3>
+                  <div class="booking-panel-sub">Nhắn trực tiếp qua Zalo hoặc Facebook để hẹn lịch</div>
                 </div>
               </div>
 
@@ -464,7 +344,7 @@
       <div>
         <div class="brand-link" style="margin-bottom: 10px;">
           <span class="brand-logo-wrap">
-            <img src="/logo-dam.png" alt="Logo Bùi Công Đam" width="34" height="34" />
+            <img src="/logo-dam.png" alt="Logo Bùi Công Đam" />
           </span>
           <span class="brand-text-wrap">
             <span class="brand-name" id="footerName">Bùi Công Đam</span>
@@ -474,21 +354,12 @@
         <p id="contactNote" style="margin: 0; color: var(--text-secondary); font-size: 0.9rem; max-width: 480px;">
           Lưu trữ hồ sơ cá nhân &amp; nghiệm lý thực tế.
         </p>
-        <div class="contact-pills" id="contactLinks"></div>
-      </div>
-
-      <div style="text-align: right;">
-        <a href="/admin" class="btn btn-secondary btn-sm">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-          </svg>
-          Trang Quản Trị (/admin)
-        </a>
-        <p style="margin: 12px 0 0; font-size: 0.78rem; color: var(--text-tertiary);">
+        <p style="margin: 10px 0 0; font-size: 0.78rem; color: var(--text-tertiary);">
           &copy; <span id="currentYear"></span> Bùi Công Đam
         </p>
       </div>
+
+      <div class="contact-pills" id="contactLinks"></div>
     </div>
   </footer>
 

@@ -200,11 +200,11 @@ a {
 }
 
 .brand-logo-wrap {
-  width: 42px;
+  width: 58px;
   height: 42px;
-  border-radius: 11px;
+  border-radius: 10px;
   background: #FFFFFF;
-  padding: 3px;
+  padding: 3px 5px;
   border: 1px solid rgba(15, 109, 66, 0.22);
   box-shadow: 0 4px 12px rgba(11, 79, 48, 0.12);
   display: flex;
@@ -222,17 +222,19 @@ a {
 
 .brand-text-wrap {
   display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.2;
+  min-width: 0;
 }
 
 .brand-name {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 1.05rem;
+  font-size: 1.04rem;
   letter-spacing: -0.015em;
   color: var(--text-primary);
+  white-space: nowrap;
 }
 
 .brand-sep {
@@ -241,15 +243,17 @@ a {
 }
 
 .brand-sub {
-  font-size: 0.86rem;
+  font-size: 0.78rem;
   font-weight: 500;
   color: var(--text-secondary);
+  white-space: nowrap;
 }
 
 .nav-group {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-shrink: 0;
 }
 
 .nav-links {
@@ -267,6 +271,7 @@ a {
   font-weight: 500;
   color: var(--text-secondary);
   border-radius: var(--radius-pill);
+  white-space: nowrap;
   transition: background 0.2s ease, color 0.2s ease;
 }
 
@@ -289,6 +294,7 @@ a {
   color: #FFFFFF;
   border: 1px solid rgba(230, 198, 103, 0.38);
   box-shadow: 0 6px 18px rgba(15, 109, 66, 0.22);
+  white-space: nowrap;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -330,6 +336,7 @@ a {
   font-weight: 600;
   font-size: 0.94rem;
   line-height: 1.25;
+  white-space: nowrap;
   cursor: pointer;
   border: 1px solid transparent;
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
@@ -399,25 +406,29 @@ a {
 .hero-landscape-section {
   position: relative;
   overflow: hidden;
-  padding: clamp(44px, 6vw, 84px) 0 clamp(68px, 8vw, 110px);
-  background:
-    radial-gradient(ellipse 90% 70% at 80% 20%, rgba(26, 143, 90, 0.13), transparent 65%),
-    radial-gradient(ellipse 70% 60% at 15% 80%, rgba(184, 137, 40, 0.08), transparent 60%),
-    linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-muted) 100%);
+  padding: clamp(48px, 6.5vw, 90px) 0 clamp(76px, 9vw, 120px);
+  background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-muted) 100%);
 }
 
-.hero-landscape-svg {
+.hero-banner-bg {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
   z-index: 0;
-  opacity: 0.9;
+  pointer-events: none;
+  background-image:
+    linear-gradient(90deg, rgba(242, 248, 245, 0.88) 0%, rgba(242, 248, 245, 0.72) 46%, rgba(242, 248, 245, 0.42) 100%),
+    linear-gradient(180deg, rgba(242, 248, 245, 0.3) 0%, rgba(242, 248, 245, 0.15) 70%, var(--bg-primary) 100%),
+    url('/banner-son-thuy.png');
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
 }
 
-[data-theme="dark"] .hero-landscape-svg {
-  opacity: 0.32;
+[data-theme="dark"] .hero-banner-bg {
+  background-image:
+    linear-gradient(90deg, rgba(7, 21, 15, 0.9) 0%, rgba(7, 21, 15, 0.8) 50%, rgba(7, 21, 15, 0.65) 100%),
+    linear-gradient(180deg, rgba(7, 21, 15, 0.5) 0%, rgba(7, 21, 15, 0.35) 70%, var(--bg-primary) 100%),
+    url('/banner-son-thuy.png');
 }
 
 .hero-jade-inner {
@@ -557,49 +568,36 @@ a {
 
 .jade-medallion {
   position: relative;
-  width: clamp(220px, 28vw, 340px);
-  aspect-ratio: 1 / 1;
-  border-radius: 46% 54% 52% 48% / 48% 46% 54% 52%;
-  background: radial-gradient(circle at 50% 50%, #FFFFFF 46%, #F1FAF5 70%, rgba(214, 240, 227, 0.9) 100%);
-  border: 1.5px solid rgba(184, 137, 40, 0.44);
+  width: clamp(280px, 34vw, 410px);
+  aspect-ratio: 4 / 3;
+  border-radius: 32px;
+  background: #FFFFFF;
+  border: 1.5px solid rgba(184, 137, 40, 0.42);
   box-shadow:
-    0 24px 60px rgba(11, 79, 48, 0.16),
-    inset 0 0 34px rgba(26, 143, 90, 0.08);
+    0 20px 50px rgba(11, 79, 48, 0.14),
+    inset 0 0 24px rgba(26, 143, 90, 0.04);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
-  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  padding: 18px 22px;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .jade-medallion:hover {
-  transform: scale(1.02);
+  transform: scale(1.015);
 }
 
 [data-theme="dark"] .jade-medallion {
   box-shadow:
     0 24px 64px rgba(0, 0, 0, 0.5),
-    0 0 42px rgba(39, 166, 110, 0.24),
-    inset 0 0 28px rgba(26, 143, 90, 0.12);
-  border-color: rgba(230, 198, 103, 0.58);
-}
-
-.jade-medallion-halo {
-  position: absolute;
-  inset: -14px;
-  border-radius: inherit;
-  border: 1px dashed rgba(184, 137, 40, 0.38);
-  pointer-events: none;
-  animation: jadeOrbit 36s linear infinite;
+    0 0 36px rgba(39, 166, 110, 0.22);
+  border-color: rgba(230, 198, 103, 0.55);
 }
 
 .hero-logo-img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  mix-blend-mode: multiply;
-  filter: drop-shadow(0 10px 18px rgba(11, 79, 48, 0.12));
-  animation: jadeFloat 6s ease-in-out infinite;
 }
 
 .hero-logo-caption {
@@ -1880,7 +1878,7 @@ textarea.form-control {
   }
 
   .jade-medallion {
-    width: 240px;
+    width: min(340px, 100%);
   }
 
   .booking-grid,
@@ -1901,6 +1899,10 @@ textarea.form-control {
   .nav-links,
   .nav-book-btn {
     display: none;
+  }
+
+  .brand-sub {
+    white-space: normal;
   }
 
   .masonry-grid,
