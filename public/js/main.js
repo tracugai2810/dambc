@@ -95,9 +95,9 @@
     els.headerName.textContent = name;
     els.heroName.textContent = name;
     els.footerName.textContent = name;
-    els.headerSeal.textContent = seal;
-    els.heroSeal.textContent = seal;
-    els.footerSeal.textContent = seal;
+    if (els.headerSeal) els.headerSeal.textContent = seal;
+    if (els.heroSeal) els.heroSeal.textContent = seal;
+    if (els.footerSeal) els.footerSeal.textContent = seal;
     els.headerTagline.textContent = tagline;
     els.heroBio.textContent = p.bio || '';
     els.heroPhilosophy.textContent = p.philosophy || '';
@@ -141,7 +141,6 @@
   function renderFeedbacks() {
     const q = state.fbQuery.trim().toLowerCase();
     const list = state.feedbacks.filter((item) => {
-      if (state.fbFilter === 'featured' && !item.featured) return false;
       if (state.fbFilter === 'Lục Hào' && item.category !== 'Lục Hào') return false;
       if (state.fbFilter === 'Tử Vi' && item.category !== 'Tử Vi') return false;
       if (!q) return true;

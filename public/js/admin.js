@@ -143,7 +143,6 @@
               <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px;">
                 <span class="badge ${item.category === 'Tử Vi' ? 'badge-tuvi' : 'badge-luchao'}">${escapeHtml(item.category)}</span>
                 ${imgList.length > 1 ? `<span class="badge badge-topic">${imgList.length} ảnh</span>` : ''}
-                ${item.featured ? '<span class="badge badge-luchao">Nổi bật</span>' : ''}
                 <span class="feedback-date">${escapeHtml(item.date || '')}</span>
               </div>
               <div style="font-weight: 600; font-size: 0.95rem;">${escapeHtml(mainTitle)}</div>
@@ -152,7 +151,6 @@
           </div>
           <div style="display: flex; gap: 6px; flex-shrink: 0;">
             <button type="button" class="btn btn-secondary btn-sm" data-edit-fb="${escapeHtml(item.id)}">Sửa</button>
-            <button type="button" class="btn btn-secondary btn-sm" data-toggle-featured="${escapeHtml(item.id)}">${item.featured ? 'Bỏ ghim' : 'Ghim'}</button>
             <button type="button" class="btn btn-danger btn-sm" data-delete-fb="${escapeHtml(item.id)}">Xóa</button>
           </div>
         </div>
@@ -191,7 +189,8 @@
     const p = state.data.profile || {};
     const c = p.contact || {};
     document.getElementById('profName').value = p.name || 'Bùi Công Đam';
-    document.getElementById('profSeal').value = p.sealText || 'CÔNG ĐAM';
+    const sealInput = document.getElementById('profSeal');
+    if (sealInput) sealInput.value = p.sealText || 'CÔNG ĐAM';
     document.getElementById('profTagline').value = p.tagline || '';
     document.getElementById('profBio').value = p.bio || '';
     document.getElementById('profPhilosophy').value = p.philosophy || '';
@@ -326,7 +325,8 @@
     const noteClean = (fb.note || '').trim();
     document.getElementById('fbTopic').value = topicClean;
     document.getElementById('fbNote').value = noteClean.toLowerCase() === topicClean.toLowerCase() ? '' : noteClean;
-    document.getElementById('fbFeatured').checked = Boolean(fb.featured);
+    const featuredInput = document.getElementById('fbFeatured');
+    if (featuredInput) featuredInput.checked = Boolean(fb.featured);
     els.fbFormHeading.textContent = '2. Chỉnh Sửa Feedback Đã Đăng';
     els.fbSubmitBtn.textContent = 'Cập Nhật Feedback';
     els.fbCancelEditBtn.classList.remove('hidden');
@@ -625,7 +625,6 @@
               title: resolvedTitle,
               note: noteVal,
               source: '',
-              featured: document.getElementById('fbFeatured').checked,
               imageItems: state.images.map((img) =>
                 img.existingUrl ? { existingUrl: img.existingUrl } : { imageData: img.compressedWebpDataUrl }
               )
@@ -645,7 +644,7 @@
               title: resolvedTitle,
               note: noteVal,
               source: '',
-              featured: document.getElementById('fbFeatured').checked,
+              featured: false,
               imageDataList: state.images.map((img) => img.compressedWebpDataUrl)
             })
           });
@@ -680,24 +679,6 @@
           await apiFetch(`/api/feedbacks/${id}`, { method: 'DELETE' });
           await loadAllData();
           showToast('Đã xóa feedback.');
-        } catch (err) {
-          showToast(err.message);
-        }
-        return;
-      }
-
-      const featBtn = e.target.closest('[data-toggle-featured]');
-      if (featBtn) {
-        const id = featBtn.getAttribute('data-toggle-featured');
-        const current = state.data.feedbacks.find((f) => f.id === id);
-        if (!current) return;
-        try {
-          await apiFetch(`/api/feedbacks/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify({ featured: !current.featured })
-          });
-          await loadAllData();
-          showToast('Đã cập nhật trạng thái nổi bật.');
         } catch (err) {
           showToast(err.message);
         }
@@ -776,7 +757,6 @@
           method: 'PUT',
           body: JSON.stringify({
             name: document.getElementById('profName').value,
-            sealText: document.getElementById('profSeal').value,
             tagline: document.getElementById('profTagline').value,
             bio: document.getElementById('profBio').value,
             philosophy: document.getElementById('profPhilosophy').value,
