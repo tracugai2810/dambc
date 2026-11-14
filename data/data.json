@@ -16,6 +16,22 @@
       "note": ""
     }
   },
-  "feedbacks": [],
+  "feedbacks": [
+    {
+      "id": "fb-1957c968",
+      "category": "Tử Vi",
+      "topic": "Mượn bàn khán lục thân",
+      "title": "Mượn bàn khán lục thân",
+      "note": "Mượn bàn khán lục thân",
+      "imageUrl": "/uploads/feedbacks/2026-11-14T04-47-07-muon-ban-khan-luc-than-d54820.webp",
+      "imageUrls": [
+        "/uploads/feedbacks/2026-11-14T04-47-07-muon-ban-khan-luc-than-d54820.webp",
+        "/uploads/feedbacks/2026-11-14T04-47-08-muon-ban-khan-luc-than-527a40.webp"
+      ],
+      "date": "2026-11-14",
+      "source": "Facebook",
+      "featured": false
+    }
+  ],
   "articles": []
 }
