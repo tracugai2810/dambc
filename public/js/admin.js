@@ -197,6 +197,8 @@
     document.getElementById('profFb').value = c.facebook || '';
     document.getElementById('profZalo').value = c.zalo || '';
     document.getElementById('profEmail').value = c.email || '';
+    const noteEl = document.getElementById('profContactNote');
+    if (noteEl) noteEl.value = c.note || '';
   }
 
   function getActiveImage() {
@@ -763,7 +765,8 @@
             contact: {
               facebook: document.getElementById('profFb').value,
               zalo: document.getElementById('profZalo').value,
-              email: document.getElementById('profEmail').value
+              email: document.getElementById('profEmail').value,
+              note: document.getElementById('profContactNote')?.value || ''
             }
           })
         });

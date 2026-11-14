@@ -23,6 +23,10 @@
     heroSeal: document.getElementById('heroSeal'),
     heroBio: document.getElementById('heroBio'),
     heroPhilosophy: document.getElementById('heroPhilosophy'),
+    heroQuickContacts: document.getElementById('heroQuickContacts'),
+    bookingCards: document.getElementById('bookingCards'),
+    bookingNote: document.getElementById('bookingNote'),
+    mobileZaloBtn: document.getElementById('mobileZaloBtn'),
     footerSeal: document.getElementById('footerSeal'),
     footerName: document.getElementById('footerName'),
     contactNote: document.getElementById('contactNote'),
@@ -48,8 +52,17 @@
     articleModal: document.getElementById('articleModal'),
     articleModalBadges: document.getElementById('articleModalBadges'),
     articleModalTitle: document.getElementById('articleModalTitle'),
-    articleModalBody: document.getElementById('articleModalBody')
+    articleModalBody: document.getElementById('articleModalBody'),
+    homeToast: document.getElementById('homeToast')
   };
+
+  function showToast(msg) {
+    if (!els.homeToast) return;
+    els.homeToast.textContent = msg;
+    els.homeToast.classList.add('show');
+    clearTimeout(showToast.timer);
+    showToast.timer = setTimeout(() => els.homeToast.classList.remove('show'), 2800);
+  }
 
   function escapeHtml(str) {
     return String(str || '')
@@ -86,11 +99,16 @@
     }
   }
 
+  function buildZaloHref(zaloRaw) {
+    if (!zaloRaw) return '';
+    return zaloRaw.startsWith('http') ? zaloRaw : `https://zalo.me/${zaloRaw.replace(/\s+/g, '')}`;
+  }
+
   function renderProfile() {
     const p = state.profile || {};
     const name = p.name || 'Bùi Công Đam';
     const seal = p.sealText || 'CÔNG ĐAM';
-    const tagline = p.tagline || 'Nghiệm Lý Lục Hào & Tử Vi';
+    const tagline = p.tagline || 'Nghiệm Lý Tử Vi & Lục Hào';
 
     els.headerName.textContent = name;
     els.heroName.textContent = name;
@@ -104,18 +122,98 @@
     els.heroPhilosophy.classList.toggle('hidden', !p.philosophy);
 
     const contact = p.contact || {};
-    els.contactNote.textContent = contact.note || 'Liên hệ trao đổi học thuật Lục Hào & Tử Vi.';
+    const zaloHref = buildZaloHref(contact.zalo);
+
+    const quickPills = [];
+    if (contact.zalo) {
+      quickPills.push(`<a href="${escapeHtml(zaloHref)}" target="_blank" rel="noopener noreferrer" class="quick-contact-chip">Zalo: <strong>${escapeHtml(contact.zalo)}</strong></a>`);
+    }
+    if (contact.facebook) {
+      quickPills.push(`<a href="${escapeHtml(contact.facebook)}" target="_blank" rel="noopener noreferrer" class="quick-contact-chip">Facebook cá nhân</a>`);
+    }
+    if (els.heroQuickContacts) {
+      els.heroQuickContacts.innerHTML = quickPills.join('');
+    }
+
+    if (els.mobileZaloBtn) {
+      if (zaloHref) {
+        els.mobileZaloBtn.href = zaloHref;
+      } else if (contact.facebook) {
+        els.mobileZaloBtn.href = contact.facebook;
+        els.mobileZaloBtn.textContent = 'Nhắn Facebook';
+      }
+    }
+
+    if (els.bookingCards) {
+      const cards = [];
+      if (contact.zalo) {
+        cards.push(`
+          <div class="booking-card booking-card--zalo">
+            <div class="booking-card-top">
+              <div>
+                <div class="booking-card-label">Zalo Đặt Lịch Trực Tiếp</div>
+                <div class="booking-card-val">${escapeHtml(contact.zalo)}</div>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" data-copy-text="${escapeHtml(contact.zalo)}">Sao chép SĐT</button>
+            </div>
+            <a href="${escapeHtml(zaloHref)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="width: 100%;">
+              Nhắn Zalo Đặt Lịch Ngay
+            </a>
+          </div>
+        `);
+      }
+      if (contact.facebook) {
+        cards.push(`
+          <div class="booking-card">
+            <div class="booking-card-top">
+              <div>
+                <div class="booking-card-label">Facebook Cá Nhân</div>
+                <div class="booking-card-sub">Theo dõi bài nghiệm lý &amp; nhắn tin trao đổi</div>
+              </div>
+              <a href="${escapeHtml(contact.facebook)}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
+                Mở Facebook
+              </a>
+            </div>
+          </div>
+        `);
+      }
+      if (contact.email) {
+        cards.push(`
+          <div class="booking-card">
+            <div class="booking-card-top">
+              <div>
+                <div class="booking-card-label">Hộp Thư Email</div>
+                <div class="booking-card-val" style="font-size: 0.94rem;">${escapeHtml(contact.email)}</div>
+              </div>
+              <a href="mailto:${escapeHtml(contact.email)}" class="btn btn-secondary btn-sm">
+                Gửi Email
+              </a>
+            </div>
+          </div>
+        `);
+      }
+      els.bookingCards.innerHTML = cards.join('');
+    }
+
+    if (els.bookingNote) {
+      els.bookingNote.textContent =
+        contact.note ||
+        'Khi nhắn đặt lịch xem Tử Vi, bạn vui lòng gửi trước Ngày tháng năm sinh Dương lịch, Giờ sinh (nếu nhớ) và Giới tính để sắp xếp khung giờ trao đổi thuận tiện.';
+    }
+
+    els.contactNote.textContent = contact.note || 'Liên hệ trao đổi học thuật & đặt lịch luận giải Tử Vi, Lục Hào.';
     const pills = [];
     if (contact.facebook) {
       pills.push(`<a href="${escapeHtml(contact.facebook)}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">Facebook</a>`);
     }
     if (contact.zalo) {
-      const zaloHref = contact.zalo.startsWith('http') ? contact.zalo : `https://zalo.me/${contact.zalo.replace(/\s+/g, '')}`;
       pills.push(`<a href="${escapeHtml(zaloHref)}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">Zalo: ${escapeHtml(contact.zalo)}</a>`);
     }
     if (contact.email) {
       pills.push(`<a href="mailto:${escapeHtml(contact.email)}" class="btn btn-secondary btn-sm">${escapeHtml(contact.email)}</a>`);
     }
+    pills.push(`<a href="https://luchao.io.vn/" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">Lập Lá Số &amp; Quẻ (luchao.io.vn)</a>`);
+    pills.push(`<a href="https://gieoque.id.vn/" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">Gieo Quẻ Nhanh (gieoque.id.vn)</a>`);
     els.contactLinks.innerHTML = pills.join('');
 
     const total = state.feedbacks.length;
@@ -210,7 +308,7 @@
             <p class="article-summary">${escapeHtml(item.summary || item.content.slice(0, 140) + '...')}</p>
           </div>
           <div class="article-footer">
-            <span style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-tertiary);">${escapeHtml(item.readTime || 'Ghi chép')}</span>
+            <span style="font-size: 0.78rem; color: var(--text-tertiary);">${escapeHtml(item.readTime || 'Ghi chép')}</span>
             <button type="button" class="btn btn-secondary btn-sm" data-open-article="${escapeHtml(item.id)}">Đọc chi tiết</button>
           </div>
         </article>
@@ -299,6 +397,21 @@
       applyTheme(current === 'dark' ? 'light' : 'dark');
     });
 
+    if (els.bookingCards) {
+      els.bookingCards.addEventListener('click', async (e) => {
+        const copyBtn = e.target.closest('[data-copy-text]');
+        if (!copyBtn) return;
+        const txt = copyBtn.getAttribute('data-copy-text');
+        if (!txt) return;
+        try {
+          await navigator.clipboard.writeText(txt);
+          showToast(`Đã sao chép số Zalo: ${txt}`);
+        } catch {
+          showToast(`Số Zalo: ${txt}`);
+        }
+      });
+    }
+
     document.querySelectorAll('[data-fb-filter]').forEach((btn) => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('[data-fb-filter]').forEach((b) => b.classList.remove('active'));
@@ -319,6 +432,18 @@
         btn.classList.add('active');
         state.artFilter = btn.getAttribute('data-art-filter');
         renderArticles();
+      });
+    });
+
+    document.querySelectorAll('[data-tool-filter]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const filterVal = btn.getAttribute('data-tool-filter');
+        document.querySelectorAll('[data-tool-filter]').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.tool-card[data-tool-id]').forEach((card) => {
+          const matched = filterVal === 'all' || card.getAttribute('data-tool-id') === filterVal;
+          card.classList.toggle('hidden', !matched);
+        });
       });
     });
 

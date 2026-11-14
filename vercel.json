@@ -1,7 +1,7 @@
 {
   "functions": {
     "api/index.js": {
-      "includeFiles": "data/*.json"
+      "includeFiles": "{data/*.json,public/index.html}"
     }
   },
   "rewrites": [
@@ -14,12 +14,24 @@
       "destination": "/admin.html"
     },
     {
+      "source": "/robots.txt",
+      "destination": "/api/index?__path=/robots.txt"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/index?__path=/sitemap.xml"
+    },
+    {
       "source": "/api/:path*",
       "destination": "/api/index?__path=/api/:path*"
     },
     {
       "source": "/uploads/feedbacks/:filename",
       "destination": "/api/index?__path=/uploads/feedbacks/:filename"
+    },
+    {
+      "source": "/",
+      "destination": "/api/index?__path=/"
     }
   ]
 }

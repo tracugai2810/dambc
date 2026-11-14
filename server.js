@@ -566,6 +566,215 @@ function sortByDateDesc(items) {
   return [...items].sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
 }
 
+function getOriginUrl(req) {
+  const protoHeader = String(req.headers['x-forwarded-proto'] || '').split(',')[0].trim();
+  const proto = protoHeader || (IS_VERCEL ? 'https' : 'http');
+  const host = req.headers['x-forwarded-host'] || req.headers.host || `localhost:${PORT}`;
+  return `${proto}://${host}`.replace(/\/+$/, '');
+}
+
+function escapeText(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function serveRobotsTxt(req, res) {
+  const origin = getOriginUrl(req);
+  const body = [
+    'User-agent: *',
+    'Allow: /',
+    'Disallow: /admin',
+    'Disallow: /admin.html',
+    'Disallow: /api/',
+    '',
+    `Sitemap: ${origin}/sitemap.xml`,
+    ''
+  ].join('\n');
+  res.writeHead(200, {
+    'Content-Type': 'text/plain; charset=utf-8',
+    'Cache-Control': 'public, max-age=0, s-maxage=3600'
+  });
+  res.end(body);
+}
+
+async function serveSitemapXml(req, res) {
+  const origin = getOriginUrl(req);
+  const data = await readData().catch(() => normalizeDataShape(getDefaultData()));
+  const allDates = [
+    ...(data.feedbacks || []).map((f) => f.date).filter(Boolean),
+    ...(data.articles || []).map((a) => a.date).filter(Boolean)
+  ].sort();
+  const lastmod = allDates.length > 0 ? allDates[allDates.length - 1] : new Date().toISOString().slice(0, 10);
+
+  const images = [
+    {
+      loc: `${origin}/logo-dam.png`,
+      title: 'Logo Bùi Công Đam — Tử Vi Đẩu Số & Lục Hào Kinh Dịch'
+    }
+  ];
+  for (const fb of data.feedbacks || []) {
+    const urls = Array.isArray(fb.imageUrls) && fb.imageUrls.length > 0 ? fb.imageUrls : (fb.imageUrl ? [fb.imageUrl] : []);
+    const title = `${fb.category || 'Tử Vi'} - ${fb.topic || fb.title || 'Feedback thực chứng'}`;
+    for (const u of urls) {
+      if (!u) continue;
+      const absUrl = u.startsWith('http') ? u : `${origin}${u}`;
+      images.push({ loc: absUrl, title });
+    }
+  }
+
+  const imageXml = images
+    .map(
+      (img) =>
+        `    <image:image>\n      <image:loc>${escapeText(img.loc)}</image:loc>\n      <image:title>${escapeText(img.title)}</image:title>\n    </image:image>`
+    )
+    .join('\n');
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>${escapeText(origin)}/</loc>
+    <lastmod>${escapeText(lastmod)}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+${imageXml}
+  </url>
+</urlset>`;
+
+  res.writeHead(200, {
+    'Content-Type': 'application/xml; charset=utf-8',
+    'Cache-Control': 'public, max-age=0, s-maxage=3600'
+  });
+  res.end(xml);
+}
+
+async function serveHomeWithSeo(req, res) {
+  const indexPath = path.join(PUBLIC_DIR, 'index.html');
+  if (!fs.existsSync(indexPath)) {
+    res.writeHead(404);
+    res.end('Not Found');
+    return;
+  }
+
+  let html = fs.readFileSync(indexPath, 'utf8');
+  const origin = getOriginUrl(req);
+  const data = await readData().catch(() => normalizeDataShape(getDefaultData()));
+  const p = data.profile || {};
+  const c = p.contact || {};
+  const name = p.name || 'Bùi Công Đam';
+  const description =
+    p.bio ||
+    'Bùi Công Đam — Nghiên cứu & luận giải Tử Vi Đẩu Số, Lục Hào Kinh Dịch, dò giờ sinh và lưu trữ hồ sơ feedback thực chứng.';
+
+  const sameAs = ['https://luchao.io.vn/', 'https://gieoque.id.vn/'];
+  if (c.facebook) sameAs.push(c.facebook);
+
+  const schemaGraph = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebSite',
+        '@id': `${origin}/#website`,
+        url: `${origin}/`,
+        name: `${name} — Luận Giải & Nghiệm Lý Tử Vi, Lục Hào`,
+        description,
+        inLanguage: 'vi'
+      },
+      {
+        '@type': 'Person',
+        '@id': `${origin}/#person`,
+        name,
+        description,
+        image: `${origin}/logo-dam.png`,
+        url: `${origin}/`,
+        email: c.email || undefined,
+        telephone: c.zalo || undefined,
+        sameAs: sameAs.length > 0 ? sameAs : undefined,
+        knowsAbout: ['Tử Vi Đẩu Số', 'Lục Hào Kinh Dịch', 'Dò giờ sinh', 'Nghiệm lý tử vi']
+      },
+      {
+        '@type': 'ProfessionalService',
+        '@id': `${origin}/#service`,
+        name: `Luận Giải Tử Vi & Lục Hào — ${name}`,
+        url: `${origin}/`,
+        image: `${origin}/logo-dam.png`,
+        description,
+        provider: { '@id': `${origin}/#person` },
+        telephone: c.zalo || undefined,
+        email: c.email || undefined,
+        areaServed: 'VN',
+        serviceType: ['Luận giải Tử Vi Đẩu Số', 'Gieo quẻ Lục Hào Kinh Dịch', 'Dò giờ sinh thực chứng']
+      }
+    ]
+  };
+
+  schemaGraph['@graph'].push({
+    '@type': 'ItemList',
+    name: 'Công cụ Hỗ trợ Huyền học Trực tuyến',
+    itemListElement: [
+      {
+        '@type': 'WebApplication',
+        position: 1,
+        name: 'Lập Quẻ Kinh Dịch Lục Hào, Tử Vi Bắc Phái & Phong Thủy Online',
+        url: 'https://luchao.io.vn/',
+        applicationCategory: 'UtilitiesApplication',
+        operatingSystem: 'Web',
+        creator: { '@id': `${origin}/#person` }
+      },
+      {
+        '@type': 'WebApplication',
+        position: 2,
+        name: 'Công Cụ Gieo Quẻ Lục Hào Kinh Dịch Online',
+        url: 'https://gieoque.id.vn/',
+        applicationCategory: 'UtilitiesApplication',
+        operatingSystem: 'Web',
+        creator: { '@id': `${origin}/#person` }
+      }
+    ]
+  });
+
+  if (Array.isArray(data.articles) && data.articles.length > 0) {
+    schemaGraph['@graph'].push({
+      '@type': 'ItemList',
+      name: 'Bài viết Nghiệm lý Tử Vi & Lục Hào',
+      itemListElement: data.articles.slice(0, 12).map((art, i) => ({
+        '@type': 'Article',
+        position: i + 1,
+        headline: art.title,
+        description: art.summary || String(art.content || '').slice(0, 160),
+        datePublished: art.date || undefined,
+        articleSection: art.category || 'Tử Vi',
+        author: { '@id': `${origin}/#person` }
+      }))
+    });
+  }
+
+  const jsonLdScript = `<script type="application/ld+json">${JSON.stringify(schemaGraph).replace(/<\/script/gi, '<\\/script')}</script>`;
+
+  const noscriptItems = [
+    ...(data.feedbacks || []).slice(0, 20).map((f) => `<li>${escapeText(f.category || 'Tử Vi')}: ${escapeText(f.topic || f.title || '')} (${escapeText(f.date || '')})</li>`),
+    ...(data.articles || []).slice(0, 20).map((a) => `<li><strong>${escapeText(a.title || '')}</strong> — ${escapeText(a.summary || '')}</li>`)
+  ].join('');
+  const noscriptTools =
+    '<p>Công cụ hỗ trợ huyền học: <a href="https://luchao.io.vn/">Lập Quẻ Lục Hào, Tử Vi Bắc Phái &amp; Phong Thủy Online (luchao.io.vn)</a> · <a href="https://gieoque.id.vn/">Gieo Quẻ Lục Hào Kinh Dịch Online (gieoque.id.vn)</a></p>';
+  const noscriptBlock = `<noscript><section style="max-width:860px;margin:20px auto;padding:16px"><h1>${escapeText(name)} — Nghiệm Lý Tử Vi &amp; Lục Hào</h1><p>${escapeText(description)}</p>${noscriptTools}<ul>${noscriptItems}</ul></section></noscript>`;
+
+  html = html
+    .replace(/https:\/\/dambc\.vercel\.app/g, origin)
+    .replace('<!--SEO_DYNAMIC_SCHEMA-->', jsonLdScript)
+    .replace('<!--SEO_NOSCRIPT_SUMMARY-->', noscriptBlock);
+
+  res.writeHead(200, {
+    'Content-Type': 'text/html; charset=utf-8',
+    'Cache-Control': 'public, max-age=0, s-maxage=60, stale-while-revalidate=300'
+  });
+  res.end(html);
+}
+
 async function handleApi(req, res, pathname) {
   if (pathname.startsWith('/api/uploads/feedbacks/')) {
     const rel = pathname.slice('/api/uploads/feedbacks/'.length);
@@ -887,11 +1096,18 @@ async function requestHandler(req, res) {
       return;
     }
 
+    if (pathname === '/robots.txt') {
+      serveRobotsTxt(req, res);
+      return;
+    }
+
+    if (pathname === '/sitemap.xml') {
+      await serveSitemapXml(req, res);
+      return;
+    }
+
     if (pathname === '/' || pathname === '/index.html') {
-      if (!serveStaticFile(res, PUBLIC_DIR, 'index.html', 'no-cache')) {
-        res.writeHead(404);
-        res.end('Not Found');
-      }
+      await serveHomeWithSeo(req, res);
       return;
     }
 
