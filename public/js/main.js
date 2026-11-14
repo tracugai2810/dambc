@@ -16,24 +16,17 @@
     themeToggle: document.getElementById('themeToggle'),
     themeIconSun: document.getElementById('themeIconSun'),
     themeIconMoon: document.getElementById('themeIconMoon'),
-    headerSeal: document.getElementById('headerSeal'),
     headerName: document.getElementById('headerName'),
     headerTagline: document.getElementById('headerTagline'),
     heroName: document.getElementById('heroName'),
-    heroSeal: document.getElementById('heroSeal'),
     heroBio: document.getElementById('heroBio'),
     heroPhilosophy: document.getElementById('heroPhilosophy'),
-    heroQuickContacts: document.getElementById('heroQuickContacts'),
     bookingCards: document.getElementById('bookingCards'),
     bookingNote: document.getElementById('bookingNote'),
     mobileZaloBtn: document.getElementById('mobileZaloBtn'),
-    footerSeal: document.getElementById('footerSeal'),
     footerName: document.getElementById('footerName'),
     contactNote: document.getElementById('contactNote'),
     contactLinks: document.getElementById('contactLinks'),
-    statTotalFeedbacks: document.getElementById('statTotalFeedbacks'),
-    statLucHao: document.getElementById('statLucHao'),
-    statTuVi: document.getElementById('statTuVi'),
     feedbackGrid: document.getElementById('feedbackGrid'),
     feedbackEmpty: document.getElementById('feedbackEmpty'),
     feedbackSearch: document.getElementById('feedbackSearch'),
@@ -119,15 +112,11 @@
   function renderProfile() {
     const p = state.profile || {};
     const name = p.name || 'Bùi Công Đam';
-    const seal = p.sealText || 'CÔNG ĐAM';
     const tagline = p.tagline || 'Nghiệm Lý Tử Vi & Lục Hào';
 
     els.headerName.textContent = name;
     els.heroName.textContent = name;
     els.footerName.textContent = name;
-    if (els.headerSeal) els.headerSeal.textContent = seal;
-    if (els.heroSeal) els.heroSeal.textContent = seal;
-    if (els.footerSeal) els.footerSeal.textContent = seal;
     els.headerTagline.textContent = tagline;
     els.heroBio.textContent = p.bio || '';
     els.heroPhilosophy.textContent = p.philosophy || '';
@@ -135,17 +124,6 @@
 
     const contact = p.contact || {};
     const zaloHref = buildZaloHref(contact.zalo);
-
-    const quickPills = [];
-    if (contact.zalo) {
-      quickPills.push(`<a href="${escapeHtml(zaloHref)}" target="_blank" rel="noopener noreferrer" class="quick-contact-chip">Zalo: <strong>${escapeHtml(contact.zalo)}</strong></a>`);
-    }
-    if (contact.facebook) {
-      quickPills.push(`<a href="${escapeHtml(contact.facebook)}" target="_blank" rel="noopener noreferrer" class="quick-contact-chip">Facebook cá nhân</a>`);
-    }
-    if (els.heroQuickContacts) {
-      els.heroQuickContacts.innerHTML = quickPills.join('');
-    }
 
     if (els.mobileZaloBtn) {
       if (zaloHref) {
@@ -201,18 +179,11 @@
       pills.push(`<a href="${escapeHtml(contact.facebook)}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">Facebook</a>`);
     }
     if (contact.zalo) {
-      pills.push(`<a href="${escapeHtml(zaloHref)}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">Zalo: ${escapeHtml(contact.zalo)}</a>`);
+      pills.push(`<a href="${escapeHtml(zaloHref)}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">Zalo: ${escapeHtml(formatPhoneDisplay(contact.zalo))}</a>`);
     }
     pills.push(`<a href="https://luchao.io.vn/" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">luchao.io.vn</a>`);
     pills.push(`<a href="https://gieoque.id.vn/" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">gieoque.id.vn</a>`);
     els.contactLinks.innerHTML = pills.join('');
-
-    const total = state.feedbacks.length;
-    const lucHaoCount = state.feedbacks.filter((f) => f.category === 'Lục Hào').length;
-    const tuViCount = state.feedbacks.filter((f) => f.category === 'Tử Vi').length;
-    if (els.statTotalFeedbacks) els.statTotalFeedbacks.textContent = String(total);
-    if (els.statLucHao) els.statLucHao.textContent = String(lucHaoCount);
-    if (els.statTuVi) els.statTuVi.textContent = String(tuViCount);
   }
 
   function categoryBadge(category) {

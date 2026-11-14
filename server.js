@@ -757,7 +757,7 @@ async function serveHomeWithSeo(req, res) {
     });
   }
 
-  const jsonLdScript = `<script type="application/ld+json">${JSON.stringify(schemaGraph).replace(/<\/script/gi, '<\\/script')}</script>`;
+  const jsonLdScript = `<script id="seoSchema" type="application/ld+json">${JSON.stringify(schemaGraph).replace(/<\/script/gi, '<\\/script')}</script>`;
 
   const noscriptItems = [
     ...(data.feedbacks || []).slice(0, 20).map((f) => `<li>${escapeText(f.category || 'Tử Vi')}: ${escapeText(f.topic || f.title || '')} (${escapeText(f.date || '')})</li>`),
@@ -765,12 +765,13 @@ async function serveHomeWithSeo(req, res) {
   ].join('');
   const noscriptTools =
     '<p>Công cụ hỗ trợ huyền học: <a href="https://luchao.io.vn/">Lập Quẻ Lục Hào, Tử Vi Bắc Phái &amp; Phong Thủy Online (luchao.io.vn)</a> · <a href="https://gieoque.id.vn/">Gieo Quẻ Lục Hào Kinh Dịch Online (gieoque.id.vn)</a></p>';
-  const noscriptBlock = `<noscript><section style="max-width:860px;margin:20px auto;padding:16px"><h1>${escapeText(name)} — Nghiệm Lý Tử Vi &amp; Lục Hào</h1><p>${escapeText(description)}</p>${noscriptTools}<ul>${noscriptItems}</ul></section></noscript>`;
+  const noscriptBlock = `<noscript><section style="max-width:860px;margin:20px auto;padding:16px"><h2>${escapeText(name)} — Nghiệm Lý Tử Vi &amp; Lục Hào</h2><p>${escapeText(description)}</p>${noscriptTools}<ul>${noscriptItems}</ul></section></noscript>`;
 
   html = html
-    .replace(/https:\/\/dambc\.vercel\.app/g, origin)
-    .replace('<!--SEO_DYNAMIC_SCHEMA-->', jsonLdScript)
-    .replace('<!--SEO_NOSCRIPT_SUMMARY-->', noscriptBlock);
+    .replace(/https:\/\/dambc\.vercel\.app/g, () => origin)
+    .replace(/<script id="seoSchema" type="application\/ld\+json">[\s\S]*?<\/script>/, () => jsonLdScript)
+    .replace('<!--SEO_DYNAMIC_SCHEMA-->', () => jsonLdScript)
+    .replace('<!--SEO_NOSCRIPT_SUMMARY-->', () => noscriptBlock);
 
   res.writeHead(200, {
     'Content-Type': 'text/html; charset=utf-8',

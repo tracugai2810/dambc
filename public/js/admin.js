@@ -138,7 +138,7 @@
         return `
         <div class="admin-list-item">
           <div style="display: flex; gap: 14px; align-items: flex-start; min-width: 0;">
-            <img src="${escapeHtml(imgList[0])}" alt="" class="admin-thumb" />
+            <img src="${escapeHtml(imgList[0])}" alt="${escapeHtml(mainTitle)}" class="admin-thumb" />
             <div style="min-width: 0;">
               <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px;">
                 <span class="badge ${item.category === 'Tử Vi' ? 'badge-tuvi' : 'badge-luchao'}">${escapeHtml(item.category)}</span>
@@ -189,8 +189,6 @@
     const p = state.data.profile || {};
     const c = p.contact || {};
     document.getElementById('profName').value = p.name || 'Bùi Công Đam';
-    const sealInput = document.getElementById('profSeal');
-    if (sealInput) sealInput.value = p.sealText || 'CÔNG ĐAM';
     document.getElementById('profTagline').value = p.tagline || '';
     document.getElementById('profBio').value = p.bio || '';
     document.getElementById('profPhilosophy').value = p.philosophy || '';
@@ -327,8 +325,6 @@
     const noteClean = (fb.note || '').trim();
     document.getElementById('fbTopic').value = topicClean;
     document.getElementById('fbNote').value = noteClean.toLowerCase() === topicClean.toLowerCase() ? '' : noteClean;
-    const featuredInput = document.getElementById('fbFeatured');
-    if (featuredInput) featuredInput.checked = Boolean(fb.featured);
     els.fbFormHeading.textContent = '2. Chỉnh Sửa Feedback Đã Đăng';
     els.fbSubmitBtn.textContent = 'Cập Nhật Feedback';
     els.fbCancelEditBtn.classList.remove('hidden');

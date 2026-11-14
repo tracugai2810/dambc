@@ -11,6 +11,8 @@
   <meta name="theme-color" content="#0F6D42" />
 
   <link rel="canonical" href="https://dambc.vercel.app/" />
+  <link rel="alternate" hreflang="vi" href="https://dambc.vercel.app/" />
+  <link rel="alternate" hreflang="x-default" href="https://dambc.vercel.app/" />
   <link rel="icon" type="image/png" href="/logo-dam.png" />
   <link rel="apple-touch-icon" href="/logo-dam.png" />
 
@@ -34,7 +36,64 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/styles.css" />
-  <!--SEO_DYNAMIC_SCHEMA-->
+  <script id="seoSchema" type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://dambc.vercel.app/#website",
+        "url": "https://dambc.vercel.app/",
+        "name": "Bùi Công Đam — Luận Giải & Nghiệm Lý Tử Vi, Lục Hào",
+        "description": "Bùi Công Đam — Luận giải Tử Vi Đẩu Số, gieo quẻ Lục Hào Kinh Dịch, dò giờ sinh và lưu trữ hồ sơ thực chứng.",
+        "inLanguage": "vi"
+      },
+      {
+        "@type": "Person",
+        "@id": "https://dambc.vercel.app/#person",
+        "name": "Bùi Công Đam",
+        "image": "https://dambc.vercel.app/logo-dam.png",
+        "url": "https://dambc.vercel.app/",
+        "sameAs": ["https://luchao.io.vn/", "https://gieoque.id.vn/"],
+        "knowsAbout": ["Tử Vi Đẩu Số", "Lục Hào Kinh Dịch", "Dò giờ sinh", "Nghiệm lý tử vi"]
+      },
+      {
+        "@type": "ProfessionalService",
+        "@id": "https://dambc.vercel.app/#service",
+        "name": "Luận Giải Tử Vi & Lục Hào — Bùi Công Đam",
+        "url": "https://dambc.vercel.app/",
+        "image": "https://dambc.vercel.app/logo-dam.png",
+        "provider": { "@id": "https://dambc.vercel.app/#person" },
+        "areaServed": "VN",
+        "serviceType": ["Luận giải Tử Vi Đẩu Số", "Gieo quẻ Lục Hào Kinh Dịch", "Dò giờ sinh thực chứng"]
+      },
+      {
+        "@type": "ItemList",
+        "name": "Công cụ Hỗ trợ Huyền học Trực tuyến",
+        "itemListElement": [
+          {
+            "@type": "WebApplication",
+            "position": 1,
+            "name": "Lập Quẻ Kinh Dịch Lục Hào, Tử Vi Bắc Phái & Phong Thủy Online",
+            "url": "https://luchao.io.vn/",
+            "applicationCategory": "UtilitiesApplication",
+            "operatingSystem": "Web",
+            "creator": { "@id": "https://dambc.vercel.app/#person" }
+          },
+          {
+            "@type": "WebApplication",
+            "position": 2,
+            "name": "Công Cụ Gieo Quẻ Lục Hào Kinh Dịch Online",
+            "url": "https://gieoque.id.vn/",
+            "applicationCategory": "UtilitiesApplication",
+            "operatingSystem": "Web",
+            "creator": { "@id": "https://dambc.vercel.app/#person" }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
   <header class="site-header">

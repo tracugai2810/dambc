@@ -2008,6 +2008,15 @@ textarea.form-control {
     white-space: nowrap;
   }
 
+  .admin-layout .toolbar .filter-tabs {
+    flex-wrap: wrap;
+    border-radius: var(--radius-md);
+  }
+
+  .admin-layout .toolbar .filter-tab {
+    flex: 1 1 calc(50% - 4px);
+  }
+
   .search-box {
     flex: 1 1 100%;
     max-width: 100%;
