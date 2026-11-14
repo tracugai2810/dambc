@@ -6,11 +6,8 @@
     data: { profile: {}, feedbacks: [], articles: [], storageStats: {} },
     blurMode: false,
     isDrawing: false,
-    undoStack: [],
-    hasImage: false,
-    compressedWebpDataUrl: '',
-    originalBytes: 0,
-    compressedBytes: 0
+    images: [],
+    activeImageIndex: -1
   };
 
   const els = {
@@ -24,6 +21,9 @@
     fbFileInput: document.getElementById('fbFileInput'),
     pickFileBtn: document.getElementById('pickFileBtn'),
     canvasEditorWrap: document.getElementById('canvasEditorWrap'),
+    imageQueueCount: document.getElementById('imageQueueCount'),
+    imageStrip: document.getElementById('imageStrip'),
+    clearAllImagesBtn: document.getElementById('clearAllImagesBtn'),
     blurCanvas: document.getElementById('blurCanvas'),
     toggleBlurBtn: document.getElementById('toggleBlurBtn'),
     brushSizeSelect: document.getElementById('brushSizeSelect'),
@@ -114,7 +114,9 @@
     } else if (st.mode === 'vercel-readonly') {
       modeLabel = 'Chưa gắn GITHUB_TOKEN trên Vercel';
     }
-    els.storageBadge.textContent = `Kho ảnh: ${st.imageCount || 0} ảnh (${st.totalMB || 0} MB) • Lưu tại: ${modeLabel}`;
+    const usedMB = st.totalMB ?? 0;
+    const remMB = st.remainingMB ?? 1000;
+    els.storageBadge.textContent = `Kho ảnh: ${st.imageCount || 0} ảnh (Đã dùng ${usedMB} MB / Còn trống ~${remMB} MB) • Lưu tại: ${modeLabel}`;
   }
 
   function renderFeedbackList() {
@@ -124,13 +126,16 @@
       return;
     }
     els.adminFbList.innerHTML = items
-      .map((item) => `
+      .map((item) => {
+        const imgList = Array.isArray(item.imageUrls) && item.imageUrls.length > 0 ? item.imageUrls : [item.imageUrl];
+        return `
         <div class="admin-list-item">
           <div style="display: flex; gap: 14px; align-items: flex-start; min-width: 0;">
-            <img src="${escapeHtml(item.imageUrl)}" alt="" class="admin-thumb" />
+            <img src="${escapeHtml(imgList[0])}" alt="" class="admin-thumb" />
             <div style="min-width: 0;">
               <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px;">
                 <span class="badge ${item.category === 'Tử Vi' ? 'badge-tuvi' : 'badge-luchao'}">${escapeHtml(item.category)}</span>
+                ${imgList.length > 1 ? `<span class="badge badge-topic">${imgList.length} ảnh</span>` : ''}
                 ${item.topic ? `<span class="badge badge-topic">${escapeHtml(item.topic)}</span>` : ''}
                 ${item.featured ? '<span class="badge badge-luchao">Nổi bật</span>' : ''}
                 <span class="feedback-date">${escapeHtml(item.date || '')}</span>
@@ -144,7 +149,8 @@
             <button type="button" class="btn btn-danger btn-sm" data-delete-fb="${escapeHtml(item.id)}">Xóa</button>
           </div>
         </div>
-      `)
+      `;
+      })
       .join('');
   }
 
@@ -187,40 +193,118 @@
     document.getElementById('profEmail').value = c.email || '';
   }
 
+  function getActiveImage() {
+    if (state.activeImageIndex < 0 || state.activeImageIndex >= state.images.length) return null;
+    return state.images[state.activeImageIndex];
+  }
+
+  function renderImageStrip() {
+    if (state.images.length === 0) {
+      els.canvasEditorWrap.classList.add('hidden');
+      els.imageStrip.innerHTML = '';
+      els.imageQueueCount.textContent = 'Đã chọn 0 ảnh';
+      els.compressionInfo.textContent = '';
+      return;
+    }
+
+    els.canvasEditorWrap.classList.remove('hidden');
+    const totalCompressed = state.images.reduce((sum, img) => sum + (img.compressedBytes || 0), 0);
+    els.imageQueueCount.textContent = `Đã chọn ${state.images.length} ảnh (Tổng: ${formatKB(totalCompressed)})`;
+
+    els.imageStrip.innerHTML = state.images
+      .map((img, idx) => `
+        <div class="image-strip-item ${idx === state.activeImageIndex ? 'active' : ''}" data-select-img="${idx}" title="Bấm để xem / che tên ảnh ${idx + 1}">
+          <img src="${img.compressedWebpDataUrl}" alt="Ảnh ${idx + 1}" />
+          <span class="image-strip-index">#${idx + 1}</span>
+          <button type="button" class="image-strip-remove" data-remove-img="${idx}" aria-label="Xóa ảnh ${idx + 1}">&times;</button>
+        </div>
+      `)
+      .join('');
+  }
+
+  function selectImageAt(index) {
+    if (index < 0 || index >= state.images.length) {
+      state.activeImageIndex = -1;
+      renderImageStrip();
+      return;
+    }
+    state.activeImageIndex = index;
+    const item = state.images[index];
+    els.blurCanvas.width = item.width;
+    els.blurCanvas.height = item.height;
+    ctx.putImageData(item.imageDataSnapshot, 0, 0);
+    els.undoBlurBtn.disabled = item.undoStack.length === 0;
+    els.compressionInfo.textContent = `Ảnh #${index + 1}: Gốc ${formatKB(item.originalBytes)} → WebP: ${formatKB(item.compressedBytes)}`;
+    renderImageStrip();
+  }
+
   function updateCompressedWebp() {
-    if (!state.hasImage) return;
+    const item = getActiveImage();
+    if (!item) return;
     let dataUrl = els.blurCanvas.toDataURL('image/webp', 0.82);
     if (!dataUrl.startsWith('data:image/webp')) {
       dataUrl = els.blurCanvas.toDataURL('image/jpeg', 0.84);
     }
-    state.compressedWebpDataUrl = dataUrl;
+    item.compressedWebpDataUrl = dataUrl;
     const base64Len = dataUrl.split(',')[1]?.length || 0;
-    state.compressedBytes = Math.round((base64Len * 3) / 4);
-    els.compressionInfo.textContent = `Gốc ${formatKB(state.originalBytes)} → Nén WebP: ${formatKB(state.compressedBytes)}`;
+    item.compressedBytes = Math.round((base64Len * 3) / 4);
+    item.imageDataSnapshot = ctx.getImageData(0, 0, els.blurCanvas.width, els.blurCanvas.height);
+    els.compressionInfo.textContent = `Ảnh #${state.activeImageIndex + 1}: Gốc ${formatKB(item.originalBytes)} → WebP: ${formatKB(item.compressedBytes)}`;
+    renderImageStrip();
   }
 
-  function loadImageToCanvas(fileOrBlob) {
-    state.originalBytes = fileOrBlob.size || 0;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const img = new Image();
-      img.onload = () => {
-        const maxW = 1200;
-        const scale = img.width > maxW ? maxW / img.width : 1;
-        els.blurCanvas.width = Math.round(img.width * scale);
-        els.blurCanvas.height = Math.round(img.height * scale);
-        ctx.clearRect(0, 0, els.blurCanvas.width, els.blurCanvas.height);
-        ctx.drawImage(img, 0, 0, els.blurCanvas.width, els.blurCanvas.height);
+  function decodeFileToQueue(fileOrBlob) {
+    return new Promise((resolve) => {
+      const originalBytes = fileOrBlob.size || 0;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const maxW = 1200;
+          const scale = img.width > maxW ? maxW / img.width : 1;
+          const w = Math.round(img.width * scale);
+          const h = Math.round(img.height * scale);
 
-        state.hasImage = true;
-        state.undoStack = [];
-        els.undoBlurBtn.disabled = true;
-        els.canvasEditorWrap.classList.remove('hidden');
-        updateCompressedWebp();
+          const offCanvas = document.createElement('canvas');
+          offCanvas.width = w;
+          offCanvas.height = h;
+          const offCtx = offCanvas.getContext('2d');
+          offCtx.drawImage(img, 0, 0, w, h);
+
+          let dataUrl = offCanvas.toDataURL('image/webp', 0.82);
+          if (!dataUrl.startsWith('data:image/webp')) {
+            dataUrl = offCanvas.toDataURL('image/jpeg', 0.84);
+          }
+          const base64Len = dataUrl.split(',')[1]?.length || 0;
+          const compressedBytes = Math.round((base64Len * 3) / 4);
+
+          state.images.push({
+            width: w,
+            height: h,
+            originalBytes,
+            compressedBytes,
+            compressedWebpDataUrl: dataUrl,
+            imageDataSnapshot: offCtx.getImageData(0, 0, w, h),
+            undoStack: []
+          });
+          resolve(true);
+        };
+        img.onerror = () => resolve(false);
+        img.src = reader.result;
       };
-      img.src = reader.result;
-    };
-    reader.readAsDataURL(fileOrBlob);
+      reader.onerror = () => resolve(false);
+      reader.readAsDataURL(fileOrBlob);
+    });
+  }
+
+  async function addImagesToQueue(files) {
+    const validFiles = Array.from(files || []).filter((f) => f && f.type && f.type.startsWith('image/'));
+    if (validFiles.length === 0) return;
+    for (const file of validFiles) {
+      await decodeFileToQueue(file);
+    }
+    selectImageAt(state.images.length - 1);
+    showToast(`Đã thêm ${validFiles.length} ảnh (tổng ${state.images.length} ảnh trong bài).`);
   }
 
   function getCanvasCoords(evt) {
@@ -271,9 +355,10 @@
   }
 
   function pushUndoSnapshot() {
-    if (!state.hasImage) return;
-    if (state.undoStack.length >= 12) state.undoStack.shift();
-    state.undoStack.push(ctx.getImageData(0, 0, els.blurCanvas.width, els.blurCanvas.height));
+    const item = getActiveImage();
+    if (!item) return;
+    if (item.undoStack.length >= 12) item.undoStack.shift();
+    item.undoStack.push(ctx.getImageData(0, 0, els.blurCanvas.width, els.blurCanvas.height));
     els.undoBlurBtn.disabled = false;
   }
 
@@ -288,15 +373,16 @@
     });
 
     els.undoBlurBtn.addEventListener('click', () => {
-      if (state.undoStack.length === 0) return;
-      const prev = state.undoStack.pop();
+      const item = getActiveImage();
+      if (!item || item.undoStack.length === 0) return;
+      const prev = item.undoStack.pop();
       ctx.putImageData(prev, 0, 0);
-      els.undoBlurBtn.disabled = state.undoStack.length === 0;
+      els.undoBlurBtn.disabled = item.undoStack.length === 0;
       updateCompressedWebp();
     });
 
     const startDraw = (e) => {
-      if (!state.blurMode || !state.hasImage) return;
+      if (!state.blurMode || !getActiveImage()) return;
       e.preventDefault();
       pushUndoSnapshot();
       state.isDrawing = true;
@@ -366,8 +452,10 @@
 
     els.pickFileBtn.addEventListener('click', () => els.fbFileInput.click());
     els.fbFileInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) loadImageToCanvas(file);
+      if (e.target.files?.length) {
+        addImagesToQueue(e.target.files);
+        e.target.value = '';
+      }
     });
 
     els.dropzone.addEventListener('dragover', (e) => {
@@ -378,33 +466,58 @@
     els.dropzone.addEventListener('drop', (e) => {
       e.preventDefault();
       els.dropzone.classList.remove('dragover');
-      const file = e.dataTransfer.files[0];
-      if (file && file.type.startsWith('image/')) loadImageToCanvas(file);
+      if (e.dataTransfer.files?.length) {
+        addImagesToQueue(e.dataTransfer.files);
+      }
     });
 
     document.addEventListener('paste', (e) => {
       if (els.adminApp.classList.contains('hidden')) return;
       const items = e.clipboardData?.items || [];
+      const blobs = [];
       for (const item of items) {
         if (item.type.startsWith('image/')) {
           const blob = item.getAsFile();
-          if (blob) {
-            loadImageToCanvas(blob);
-            showToast('Đã dán ảnh từ Clipboard và nén sang WebP.');
-          }
-          break;
+          if (blob) blobs.push(blob);
         }
       }
+      if (blobs.length > 0) {
+        addImagesToQueue(blobs);
+      }
+    });
+
+    els.imageStrip.addEventListener('click', (e) => {
+      const remBtn = e.target.closest('[data-remove-img]');
+      if (remBtn) {
+        e.stopPropagation();
+        const remIdx = Number(remBtn.getAttribute('data-remove-img'));
+        state.images.splice(remIdx, 1);
+        if (state.images.length === 0) {
+          selectImageAt(-1);
+        } else {
+          selectImageAt(Math.min(remIdx, state.images.length - 1));
+        }
+        return;
+      }
+      const selItem = e.target.closest('[data-select-img]');
+      if (selItem) {
+        selectImageAt(Number(selItem.getAttribute('data-select-img')));
+      }
+    });
+
+    els.clearAllImagesBtn.addEventListener('click', () => {
+      state.images = [];
+      selectImageAt(-1);
     });
 
     els.fbCreateForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      if (!state.compressedWebpDataUrl) {
-        showToast('Vui lòng chọn hoặc dán (Ctrl+V) ảnh feedback trước.');
+      if (state.images.length === 0) {
+        showToast('Vui lòng chọn hoặc dán (Ctrl+V) ít nhất 1 ảnh feedback trước.');
         return;
       }
       els.fbSubmitBtn.disabled = true;
-      els.fbSubmitBtn.textContent = 'Đang lưu...';
+      els.fbSubmitBtn.textContent = `Đang lưu ${state.images.length} ảnh...`;
       try {
         await apiFetch('/api/feedbacks', {
           method: 'POST',
@@ -416,14 +529,14 @@
             title: document.getElementById('fbTitle').value,
             note: document.getElementById('fbNote').value,
             featured: document.getElementById('fbFeatured').checked,
-            imageData: state.compressedWebpDataUrl
+            imageDataList: state.images.map((img) => img.compressedWebpDataUrl)
           })
         });
         els.fbCreateForm.reset();
+        document.getElementById('fbCategory').value = 'Tử Vi';
         document.getElementById('fbDate').value = new Date().toISOString().slice(0, 10);
-        state.hasImage = false;
-        state.compressedWebpDataUrl = '';
-        els.canvasEditorWrap.classList.add('hidden');
+        state.images = [];
+        selectImageAt(-1);
         await loadAllData();
         showToast('Đã lưu feedback mới lên website!');
       } catch (err) {
@@ -510,7 +623,7 @@
         const art = state.data.articles.find((a) => a.id === editBtn.getAttribute('data-edit-art'));
         if (!art) return;
         document.getElementById('artEditId').value = art.id;
-        document.getElementById('artCategory').value = art.category || 'Lục Hào';
+        document.getElementById('artCategory').value = art.category || 'Tử Vi';
         document.getElementById('artDate').value = art.date || '';
         document.getElementById('artTitle').value = art.title || '';
         document.getElementById('artSummary').value = art.summary || '';

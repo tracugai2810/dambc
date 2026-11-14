@@ -8,6 +8,7 @@
     fbQuery: '',
     artFilter: 'all',
     lightboxIndex: -1,
+    lightboxSubIndex: 0,
     zoom: 1
   };
 
@@ -39,6 +40,8 @@
     lightboxBadges: document.getElementById('lightboxBadges'),
     lightboxTitle: document.getElementById('lightboxTitle'),
     lightboxNote: document.getElementById('lightboxNote'),
+    lightboxThumbs: document.getElementById('lightboxThumbs'),
+    lightboxImageCounter: document.getElementById('lightboxImageCounter'),
     lightboxSource: document.getElementById('lightboxSource'),
     lightboxDate: document.getElementById('lightboxDate'),
     lbZoomLabel: document.getElementById('lbZoomLabel'),
@@ -128,6 +131,13 @@
     return `<span class="badge ${cls}">${escapeHtml(category)}</span>`;
   }
 
+  function getFeedbackImages(item) {
+    if (Array.isArray(item?.imageUrls) && item.imageUrls.length > 0) {
+      return item.imageUrls;
+    }
+    return item?.imageUrl ? [item.imageUrl] : [];
+  }
+
   function renderFeedbacks() {
     const q = state.fbQuery.trim().toLowerCase();
     const list = state.feedbacks.filter((item) => {
@@ -142,7 +152,18 @@
     state.filteredFeedbacks = list;
     els.feedbackEmpty.classList.toggle('hidden', list.length > 0);
     els.feedbackGrid.innerHTML = list
-      .map((item, idx) => `
+      .map((item, idx) => {
+        const imgs = getFeedbackImages(item);
+        const mainImg = imgs[0] || '';
+        const thumbsHtml = imgs.length > 1
+          ? `<div class="feedback-thumbs">${imgs.map((url, subIdx) => `
+              <button type="button" class="feedback-thumb-btn" data-open-lightbox="${idx}" data-img-index="${subIdx}" aria-label="Xem ảnh ${subIdx + 1} của ${escapeHtml(item.title)}">
+                <img src="${escapeHtml(url)}" alt="" loading="lazy" />
+              </button>
+            `).join('')}</div>`
+          : '';
+
+        return `
         <article class="feedback-card">
           <div class="feedback-card-head">
             <div class="badge-group">
@@ -151,20 +172,23 @@
             </div>
             <span class="feedback-date">${escapeHtml(formatDate(item.date))}</span>
           </div>
-          <button type="button" class="feedback-media-btn" data-open-lightbox="${idx}" aria-label="Phóng to ảnh feedback: ${escapeHtml(item.title)}">
-            <img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.title)}" loading="lazy" />
+          <button type="button" class="feedback-media-btn" data-open-lightbox="${idx}" data-img-index="0" aria-label="Phóng to ảnh feedback: ${escapeHtml(item.title)}">
+            <img src="${escapeHtml(mainImg)}" alt="${escapeHtml(item.title)}" loading="lazy" />
+            ${imgs.length > 1 ? `<span class="feedback-count-badge">${imgs.length} ảnh</span>` : ''}
             <span class="zoom-hint">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
               Phóng to
             </span>
           </button>
+          ${thumbsHtml}
           <div class="feedback-body">
             <h3 class="feedback-title">${escapeHtml(item.title)}</h3>
             ${item.note ? `<p class="feedback-note">${escapeHtml(item.note)}</p>` : ''}
             ${item.source ? `<div class="feedback-source">Nguồn: ${escapeHtml(item.source)}</div>` : ''}
           </div>
         </article>
-      `)
+      `;
+      })
       .join('');
   }
 
@@ -195,9 +219,11 @@
       .join('');
   }
 
-  function openLightbox(index) {
+  function openLightbox(index, imgIndex = 0) {
     if (index < 0 || index >= state.filteredFeedbacks.length) return;
     state.lightboxIndex = index;
+    const imgs = getFeedbackImages(state.filteredFeedbacks[index]);
+    state.lightboxSubIndex = Math.max(0, Math.min(imgIndex, imgs.length - 1));
     state.zoom = 1;
     updateLightboxContent();
     els.lightboxModal.classList.add('open');
@@ -207,13 +233,33 @@
   function updateLightboxContent() {
     const item = state.filteredFeedbacks[state.lightboxIndex];
     if (!item) return;
-    els.lightboxImg.src = item.imageUrl;
+    const imgs = getFeedbackImages(item);
+    const subIdx = Math.max(0, Math.min(state.lightboxSubIndex, imgs.length - 1));
+    state.lightboxSubIndex = subIdx;
+
+    els.lightboxImg.src = imgs[subIdx] || '';
     els.lightboxImg.alt = item.title || 'Ảnh feedback';
     els.lightboxImg.style.transform = `scale(${state.zoom})`;
     els.lbZoomLabel.textContent = `${Math.round(state.zoom * 100)}%`;
     els.lightboxBadges.innerHTML = `${categoryBadge(item.category)}${item.topic ? `<span class="badge badge-topic">${escapeHtml(item.topic)}</span>` : ''}`;
     els.lightboxTitle.textContent = item.title || '';
     els.lightboxNote.textContent = item.note || 'Không có ghi chú thêm.';
+    els.lightboxImageCounter.textContent = imgs.length > 1 ? `Ảnh ${subIdx + 1} / ${imgs.length} trong bài này` : '';
+
+    if (imgs.length > 1) {
+      els.lightboxThumbs.classList.remove('hidden');
+      els.lightboxThumbs.innerHTML = imgs
+        .map((url, idx) => `
+          <button type="button" class="lightbox-thumb-btn ${idx === subIdx ? 'active' : ''}" data-lb-sub="${idx}" aria-label="Xem ảnh ${idx + 1}">
+            <img src="${escapeHtml(url)}" alt="" />
+          </button>
+        `)
+        .join('');
+    } else {
+      els.lightboxThumbs.classList.add('hidden');
+      els.lightboxThumbs.innerHTML = '';
+    }
+
     els.lightboxSource.textContent = item.source ? `Nguồn: ${item.source}` : '';
     els.lightboxDate.textContent = item.date ? `Ngày lưu: ${formatDate(item.date)}` : '';
   }
@@ -270,7 +316,17 @@
     els.feedbackGrid.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-open-lightbox]');
       if (!btn) return;
-      openLightbox(Number(btn.getAttribute('data-open-lightbox')));
+      const fbIdx = Number(btn.getAttribute('data-open-lightbox'));
+      const imgIdx = Number(btn.getAttribute('data-img-index') || 0);
+      openLightbox(fbIdx, imgIdx);
+    });
+
+    els.lightboxThumbs.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-lb-sub]');
+      if (!btn) return;
+      state.lightboxSubIndex = Number(btn.getAttribute('data-lb-sub'));
+      state.zoom = 1;
+      updateLightboxContent();
     });
 
     els.articleGrid.addEventListener('click', (e) => {
@@ -291,14 +347,26 @@
 
     document.getElementById('lbPrevBtn').addEventListener('click', () => {
       if (state.filteredFeedbacks.length === 0) return;
-      state.lightboxIndex = (state.lightboxIndex - 1 + state.filteredFeedbacks.length) % state.filteredFeedbacks.length;
+      if (state.lightboxSubIndex > 0) {
+        state.lightboxSubIndex -= 1;
+      } else {
+        state.lightboxIndex = (state.lightboxIndex - 1 + state.filteredFeedbacks.length) % state.filteredFeedbacks.length;
+        const prevImgs = getFeedbackImages(state.filteredFeedbacks[state.lightboxIndex]);
+        state.lightboxSubIndex = Math.max(0, prevImgs.length - 1);
+      }
       state.zoom = 1;
       updateLightboxContent();
     });
 
     document.getElementById('lbNextBtn').addEventListener('click', () => {
       if (state.filteredFeedbacks.length === 0) return;
-      state.lightboxIndex = (state.lightboxIndex + 1) % state.filteredFeedbacks.length;
+      const currentImgs = getFeedbackImages(state.filteredFeedbacks[state.lightboxIndex]);
+      if (state.lightboxSubIndex < currentImgs.length - 1) {
+        state.lightboxSubIndex += 1;
+      } else {
+        state.lightboxIndex = (state.lightboxIndex + 1) % state.filteredFeedbacks.length;
+        state.lightboxSubIndex = 0;
+      }
       state.zoom = 1;
       updateLightboxContent();
     });

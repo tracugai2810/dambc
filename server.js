@@ -272,7 +272,7 @@ async function writeData(data, commitMessage = 'Cập nhật dữ liệu blog') 
 }
 
 function normalizeCategory(value) {
-  return ALLOWED_CATEGORIES.has(value) ? value : 'Lục Hào';
+  return ALLOWED_CATEGORIES.has(value) ? value : 'Tử Vi';
 }
 
 async function listUploadFiles() {
@@ -309,13 +309,20 @@ async function listUploadFiles() {
   return results;
 }
 
-async function getStorageStats() {
+async function getStorageStats(currentData = null) {
   const files = await listUploadFiles();
-  const totalBytes = files.reduce((sum, f) => sum + (f.size || 0), 0);
+  const imageBytes = files.reduce((sum, f) => sum + (f.size || 0), 0);
+  const dataBytes = currentData ? Buffer.byteLength(JSON.stringify(currentData, null, 2), 'utf8') : 0;
+  const totalBytes = imageBytes + dataBytes;
+  const totalMB = Number((totalBytes / (1024 * 1024)).toFixed(2));
+  const quotaMB = 1000;
+  const remainingMB = Number(Math.max(0, quotaMB - totalMB).toFixed(2));
   return {
     imageCount: files.length,
     totalBytes,
-    totalMB: Number((totalBytes / (1024 * 1024)).toFixed(2)),
+    totalMB,
+    quotaMB,
+    remainingMB,
     mode: USE_GITHUB ? 'github' : (IS_VERCEL ? 'vercel-readonly' : 'local'),
     repo: USE_GITHUB ? GITHUB_REPO : ''
   };
@@ -323,7 +330,15 @@ async function getStorageStats() {
 
 async function syncFeedbackFolder() {
   const data = await readData({ fresh: true });
-  const existingUrls = new Set(data.feedbacks.map((item) => item.imageUrl));
+  const existingUrls = new Set();
+  for (const item of data.feedbacks) {
+    if (item.imageUrl) existingUrls.add(item.imageUrl);
+    if (Array.isArray(item.imageUrls)) {
+      for (const u of item.imageUrls) {
+        if (u) existingUrls.add(u);
+      }
+    }
+  }
   const files = await listUploadFiles();
   let addedCount = 0;
 
@@ -335,7 +350,7 @@ async function syncFeedbackFolder() {
     const baseLabel = path.basename(file.name, ext).replace(/[-_]+/g, ' ').trim();
     data.feedbacks.unshift({
       id: `fb-${crypto.randomUUID().slice(0, 8)}`,
-      category: baseLabel.toLowerCase().includes('tu vi') || baseLabel.toLowerCase().includes('tuvi') ? 'Tử Vi' : 'Lục Hào',
+      category: baseLabel.toLowerCase().includes('luc hao') || baseLabel.toLowerCase().includes('luchao') ? 'Lục Hào' : 'Tử Vi',
       topic: 'Đồng bộ từ thư mục',
       title: `Feedback lưu trữ (${file.name})`,
       note: 'Ảnh được thêm trực tiếp vào thư mục uploads/feedbacks. Bạn có thể cập nhật lại tiêu đề và ghi chú nghiệm lý trong trang Quản trị.',
@@ -557,7 +572,7 @@ async function handleApi(req, res, pathname) {
 
   if (pathname === '/api/data' && req.method === 'GET') {
     const data = await readData();
-    const storageStats = await getStorageStats();
+    const storageStats = await getStorageStats(data);
     return sendJson(res, 200, {
       profile: data.profile,
       feedbacks: sortByDateDesc(data.feedbacks),
@@ -605,10 +620,20 @@ async function handleApi(req, res, pathname) {
     if (!requireAdmin(req, res)) return;
     assertWritableEnvironment();
     const body = await readJsonBody(req, 15 * 1024 * 1024);
-    if (!body.imageData) {
-      return sendJson(res, 400, { error: 'Vui lòng chọn hoặc dán (Ctrl+V) ảnh feedback.' });
+    const rawImages = Array.isArray(body.imageDataList) && body.imageDataList.length > 0
+      ? body.imageDataList.filter((img) => typeof img === 'string' && img.length > 0)
+      : (body.imageData ? [body.imageData] : []);
+
+    if (rawImages.length === 0) {
+      return sendJson(res, 400, { error: 'Vui lòng chọn hoặc dán (Ctrl+V) ít nhất 1 ảnh feedback.' });
     }
-    const saved = await saveBase64Image(body.imageData, body.topic || body.category || 'feedback');
+
+    const savedList = [];
+    for (const imgData of rawImages) {
+      const saved = await saveBase64Image(imgData, body.topic || body.category || 'feedback');
+      savedList.push(saved);
+    }
+
     const data = await readData({ fresh: true });
     const newItem = {
       id: `fb-${crypto.randomUUID().slice(0, 8)}`,
@@ -616,15 +641,17 @@ async function handleApi(req, res, pathname) {
       topic: String(body.topic || 'Nghiệm lý').trim(),
       title: String(body.title || 'Phản hồi luận giải thực tế').trim(),
       note: String(body.note || '').trim(),
-      imageUrl: saved.imageUrl,
+      imageUrl: savedList[0].imageUrl,
+      imageUrls: savedList.map((s) => s.imageUrl),
       date: /^\d{4}-\d{2}-\d{2}$/.test(body.date || '') ? body.date : new Date().toISOString().slice(0, 10),
       source: String(body.source || 'Hội nhóm').trim(),
       featured: Boolean(body.featured)
     };
     data.feedbacks.unshift(newItem);
     await writeData(data, `Thêm feedback mới: ${newItem.title}`);
-    const storageStats = await getStorageStats();
-    return sendJson(res, 201, { feedback: newItem, savedBytes: saved.bytes, storageStats });
+    const storageStats = await getStorageStats(data);
+    const savedBytes = savedList.reduce((sum, s) => sum + (s.bytes || 0), 0);
+    return sendJson(res, 201, { feedback: newItem, savedBytes, storageStats });
   }
 
   const fbMatch = /^\/api\/feedbacks\/([a-zA-Z0-9_-]+)$/.exec(pathname);
@@ -657,8 +684,13 @@ async function handleApi(req, res, pathname) {
     if (req.method === 'DELETE') {
       const [removed] = data.feedbacks.splice(idx, 1);
       await writeData(data, `Xóa feedback: ${removed.title || id}`);
-      await deleteUploadedImage(removed.imageUrl);
-      const storageStats = await getStorageStats();
+      const urlsToDelete = Array.isArray(removed.imageUrls) && removed.imageUrls.length > 0
+        ? removed.imageUrls
+        : (removed.imageUrl ? [removed.imageUrl] : []);
+      for (const imgUrl of [...new Set(urlsToDelete)]) {
+        await deleteUploadedImage(imgUrl);
+      }
+      const storageStats = await getStorageStats(data);
       return sendJson(res, 200, { deletedId: id, storageStats });
     }
   }
@@ -722,7 +754,7 @@ async function handleApi(req, res, pathname) {
     assertWritableEnvironment();
     const result = await syncFeedbackFolder();
     const data = await readData();
-    const storageStats = await getStorageStats();
+    const storageStats = await getStorageStats(data);
     return sendJson(res, 200, {
       ...result,
       feedbacks: sortByDateDesc(data.feedbacks),
@@ -784,7 +816,7 @@ async function handleApi(req, res, pathname) {
 
     const restoredData = normalizeDataShape(body.data);
     await writeData(restoredData, 'Khôi phục dữ liệu từ file sao lưu');
-    const storageStats = await getStorageStats();
+    const storageStats = await getStorageStats(restoredData);
 
     return sendJson(res, 200, {
       restoredFiles,

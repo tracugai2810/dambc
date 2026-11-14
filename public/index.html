@@ -103,12 +103,12 @@
             <div class="stat-label">Tổng Feedback Đã Lưu</div>
           </div>
           <div class="stat-item">
-            <div class="stat-value" id="statLucHao">0</div>
-            <div class="stat-label">Ca Luận Giải Lục Hào</div>
-          </div>
-          <div class="stat-item">
             <div class="stat-value" id="statTuVi">0</div>
             <div class="stat-label">Ca Luận Giải Tử Vi</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="statLucHao">0</div>
+            <div class="stat-label">Ca Luận Giải Lục Hào</div>
           </div>
         </div>
       </div>
@@ -137,8 +137,8 @@
       <div class="toolbar">
         <div class="filter-tabs" role="tablist" aria-label="Lọc feedback theo bộ môn">
           <button type="button" class="filter-tab active" data-fb-filter="all">Tất cả</button>
-          <button type="button" class="filter-tab" data-fb-filter="Lục Hào">Lục Hào</button>
           <button type="button" class="filter-tab" data-fb-filter="Tử Vi">Tử Vi</button>
+          <button type="button" class="filter-tab" data-fb-filter="Lục Hào">Lục Hào</button>
           <button type="button" class="filter-tab filter-tab--featured" data-fb-filter="featured">Nổi bật</button>
         </div>
 
@@ -178,8 +178,8 @@
 
         <div class="filter-tabs" role="tablist" aria-label="Lọc bài viết theo bộ môn">
           <button type="button" class="filter-tab active" data-art-filter="all">Tất cả</button>
-          <button type="button" class="filter-tab" data-art-filter="Lục Hào">Lục Hào</button>
           <button type="button" class="filter-tab" data-art-filter="Tử Vi">Tử Vi</button>
+          <button type="button" class="filter-tab" data-art-filter="Lục Hào">Lục Hào</button>
         </div>
       </div>
 
@@ -253,9 +253,11 @@
           </div>
           <h3 id="lightboxTitle" style="margin: 0 0 12px; font-family: var(--font-display); font-size: 1.65rem; line-height: 1.25;"></h3>
           <p id="lightboxNote" style="margin: 0; color: var(--text-secondary); font-size: 0.94rem; line-height: 1.7;"></p>
+          <div id="lightboxThumbs" class="lightbox-thumbs hidden"></div>
         </div>
 
         <div style="border-top: 1px solid var(--border-subtle); padding-top: 14px; font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-tertiary);">
+          <div id="lightboxImageCounter" style="margin-bottom: 4px; color: var(--accent-gold);"></div>
           <div id="lightboxSource"></div>
           <div id="lightboxDate" style="margin-top: 4px;"></div>
         </div>
