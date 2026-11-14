@@ -17,15 +17,5 @@
     }
   },
   "feedbacks": [],
-  "articles": [
-    {
-      "id": "art-sample-1",
-      "category": "Lục Hào",
-      "title": "Nguyên tắc định ứng kỳ trong Lục Hào: Khi Dụng Thần gặp Tuần Không",
-      "summary": "Ghi chép thực nghiệm về cách xét ngày xuất Không, xung Không trong các quẻ hỏi về công việc, hợp đồng và tin tức hồi âm.",
-      "content": "Trong quá trình luận giải các quẻ Lục Hào thực tế trên các hội nhóm, rất nhiều trường hợp Dụng thần hoặc Thế hào vượng tướng nhưng lại rơi vào Tuần Không.\n\n1. Chân Không và Giả Không:\nKhông phải cứ gặp Tuần Không là hỏng việc. Nếu Dụng thần được Nhật Nguyệt sinh phò, hoặc tự bản thân phát động hóa tiến thần, thì đó là Giả Không — việc vẫn thành nhưng phải chờ đúng thời điểm xuất Không hoặc xung Không.\n\n2. Kinh nghiệm bắt điểm rơi ứng kỳ:\n- Quẻ tĩnh, Dụng thần vượng mà Tuần Không: Thường ứng vào ngày xuất Không hoặc ngày xung thực.\n- Dụng thần động mà Tuần Không: Khi gặp ngày trị nhật hoặc hợp khởi thường có tín hiệu ngay.\n\n(Bạn có thể chỉnh sửa hoặc viết thêm bài nghiệm lý mới trong trang Quản trị /admin).",
-      "date": "2026-11-01",
-      "readTime": "4 phút đọc"
-    }
-  ]
+  "articles": []
 }
