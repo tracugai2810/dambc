@@ -646,16 +646,18 @@ async function handleApi(req, res, pathname) {
     }
 
     const data = await readData({ fresh: true });
+    const topicStr = String(body.topic || '').trim();
+    const titleStr = String(body.title || '').trim() || topicStr || 'Nghiệm lý thực tế';
     const newItem = {
       id: `fb-${crypto.randomUUID().slice(0, 8)}`,
       category: normalizeCategory(body.category),
-      topic: String(body.topic || 'Nghiệm lý').trim(),
-      title: String(body.title || 'Phản hồi luận giải thực tế').trim(),
+      topic: topicStr || 'Nghiệm lý',
+      title: titleStr,
       note: String(body.note || '').trim(),
       imageUrl: savedList[0].imageUrl,
       imageUrls: savedList.map((s) => s.imageUrl),
       date: /^\d{4}-\d{2}-\d{2}$/.test(body.date || '') ? body.date : new Date().toISOString().slice(0, 10),
-      source: String(body.source || 'Hội nhóm').trim(),
+      source: String(body.source || '').trim(),
       featured: Boolean(body.featured)
     };
     data.feedbacks.unshift(newItem);
@@ -676,20 +678,53 @@ async function handleApi(req, res, pathname) {
     }
 
     if (req.method === 'PUT') {
-      const body = await readJsonBody(req);
+      const body = await readJsonBody(req, 15 * 1024 * 1024);
       const current = data.feedbacks[idx];
+      const oldUrls = Array.isArray(current.imageUrls) && current.imageUrls.length > 0
+        ? current.imageUrls
+        : (current.imageUrl ? [current.imageUrl] : []);
+
+      let nextImageUrls = oldUrls;
+      if (Array.isArray(body.imageItems)) {
+        const finalUrls = [];
+        for (const item of body.imageItems) {
+          if (item && typeof item.existingUrl === 'string' && (item.existingUrl.startsWith('/uploads/feedbacks/') || oldUrls.includes(item.existingUrl))) {
+            finalUrls.push(item.existingUrl);
+          } else if (item && typeof item.imageData === 'string' && item.imageData.length > 0) {
+            const saved = await saveBase64Image(item.imageData, body.topic || body.category || current.topic || 'feedback');
+            finalUrls.push(saved.imageUrl);
+          }
+        }
+        if (finalUrls.length === 0) {
+          return sendJson(res, 400, { error: 'Bài feedback cần có ít nhất 1 ảnh.' });
+        }
+        for (const oldUrl of [...new Set(oldUrls)]) {
+          if (!finalUrls.includes(oldUrl)) {
+            await deleteUploadedImage(oldUrl);
+          }
+        }
+        nextImageUrls = finalUrls;
+      }
+
+      const nextTopic = body.topic !== undefined ? String(body.topic).trim() : current.topic;
+      const rawTitle = body.title !== undefined ? String(body.title).trim() : current.title;
+      const nextTitle = rawTitle || nextTopic || 'Nghiệm lý thực tế';
+
       data.feedbacks[idx] = {
         ...current,
         category: body.category ? normalizeCategory(body.category) : current.category,
-        topic: body.topic !== undefined ? String(body.topic).trim() : current.topic,
-        title: body.title !== undefined ? String(body.title).trim() : current.title,
+        topic: nextTopic || 'Nghiệm lý',
+        title: nextTitle,
         note: body.note !== undefined ? String(body.note).trim() : current.note,
         source: body.source !== undefined ? String(body.source).trim() : current.source,
         date: /^\d{4}-\d{2}-\d{2}$/.test(body.date || '') ? body.date : current.date,
-        featured: body.featured !== undefined ? Boolean(body.featured) : current.featured
+        featured: body.featured !== undefined ? Boolean(body.featured) : current.featured,
+        imageUrl: nextImageUrls[0] || current.imageUrl,
+        imageUrls: nextImageUrls
       };
       await writeData(data, `Cập nhật feedback: ${data.feedbacks[idx].title}`);
-      return sendJson(res, 200, { feedback: data.feedbacks[idx] });
+      const storageStats = await getStorageStats(data);
+      return sendJson(res, 200, { feedback: data.feedbacks[idx], storageStats });
     }
 
     if (req.method === 'DELETE') {

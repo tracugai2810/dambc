@@ -6,6 +6,7 @@
     data: { profile: {}, feedbacks: [], articles: [], storageStats: {} },
     blurMode: false,
     isDrawing: false,
+    editingFbId: '',
     images: [],
     activeImageIndex: -1
   };
@@ -30,8 +31,11 @@
     undoBlurBtn: document.getElementById('undoBlurBtn'),
     blurHint: document.getElementById('blurHint'),
     compressionInfo: document.getElementById('compressionInfo'),
+    fbFormHeading: document.getElementById('fbFormHeading'),
+    fbEditId: document.getElementById('fbEditId'),
     fbCreateForm: document.getElementById('fbCreateForm'),
     fbSubmitBtn: document.getElementById('fbSubmitBtn'),
+    fbCancelEditBtn: document.getElementById('fbCancelEditBtn'),
     adminFbList: document.getElementById('adminFbList'),
     articleForm: document.getElementById('articleForm'),
     adminArtList: document.getElementById('adminArtList'),
@@ -128,6 +132,9 @@
     els.adminFbList.innerHTML = items
       .map((item) => {
         const imgList = Array.isArray(item.imageUrls) && item.imageUrls.length > 0 ? item.imageUrls : [item.imageUrl];
+        const mainTitle = item.topic || item.title || 'Nghiệm lý thực tế';
+        const noteText = (item.note || '').trim();
+        const showNote = noteText && noteText.toLowerCase() !== mainTitle.trim().toLowerCase();
         return `
         <div class="admin-list-item">
           <div style="display: flex; gap: 14px; align-items: flex-start; min-width: 0;">
@@ -136,15 +143,15 @@
               <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px;">
                 <span class="badge ${item.category === 'Tử Vi' ? 'badge-tuvi' : 'badge-luchao'}">${escapeHtml(item.category)}</span>
                 ${imgList.length > 1 ? `<span class="badge badge-topic">${imgList.length} ảnh</span>` : ''}
-                ${item.topic ? `<span class="badge badge-topic">${escapeHtml(item.topic)}</span>` : ''}
                 ${item.featured ? '<span class="badge badge-luchao">Nổi bật</span>' : ''}
                 <span class="feedback-date">${escapeHtml(item.date || '')}</span>
               </div>
-              <div style="font-weight: 600; font-size: 0.95rem;">${escapeHtml(item.title)}</div>
-              <div style="font-size: 0.84rem; color: var(--text-secondary); margin-top: 2px;">${escapeHtml(item.note || '')}</div>
+              <div style="font-weight: 600; font-size: 0.95rem;">${escapeHtml(mainTitle)}</div>
+              ${showNote ? `<div style="font-size: 0.84rem; color: var(--text-secondary); margin-top: 2px;">${escapeHtml(noteText)}</div>` : ''}
             </div>
           </div>
           <div style="display: flex; gap: 6px; flex-shrink: 0;">
+            <button type="button" class="btn btn-secondary btn-sm" data-edit-fb="${escapeHtml(item.id)}">Sửa</button>
             <button type="button" class="btn btn-secondary btn-sm" data-toggle-featured="${escapeHtml(item.id)}">${item.featured ? 'Bỏ ghim' : 'Ghim'}</button>
             <button type="button" class="btn btn-danger btn-sm" data-delete-fb="${escapeHtml(item.id)}">Xóa</button>
           </div>
@@ -209,7 +216,9 @@
 
     els.canvasEditorWrap.classList.remove('hidden');
     const totalCompressed = state.images.reduce((sum, img) => sum + (img.compressedBytes || 0), 0);
-    els.imageQueueCount.textContent = `Đã chọn ${state.images.length} ảnh (Tổng: ${formatKB(totalCompressed)})`;
+    els.imageQueueCount.textContent = totalCompressed > 0
+      ? `Đã chọn ${state.images.length} ảnh (Mới: ${formatKB(totalCompressed)})`
+      : `Đã chọn ${state.images.length} ảnh (Đang lưu trên kho)`;
 
     els.imageStrip.innerHTML = state.images
       .map((img, idx) => `
@@ -234,13 +243,16 @@
     els.blurCanvas.height = item.height;
     ctx.putImageData(item.imageDataSnapshot, 0, 0);
     els.undoBlurBtn.disabled = item.undoStack.length === 0;
-    els.compressionInfo.textContent = `Ảnh #${index + 1}: Gốc ${formatKB(item.originalBytes)} → WebP: ${formatKB(item.compressedBytes)}`;
+    els.compressionInfo.textContent = item.existingUrl
+      ? `Ảnh #${index + 1}: Đã lưu trên kho (Có thể che tên lại hoặc xóa)`
+      : `Ảnh #${index + 1}: Gốc ${formatKB(item.originalBytes)} → WebP: ${formatKB(item.compressedBytes)}`;
     renderImageStrip();
   }
 
   function updateCompressedWebp() {
     const item = getActiveImage();
     if (!item) return;
+    delete item.existingUrl;
     let dataUrl = els.blurCanvas.toDataURL('image/webp', 0.82);
     if (!dataUrl.startsWith('data:image/webp')) {
       dataUrl = els.blurCanvas.toDataURL('image/jpeg', 0.84);
@@ -249,8 +261,88 @@
     const base64Len = dataUrl.split(',')[1]?.length || 0;
     item.compressedBytes = Math.round((base64Len * 3) / 4);
     item.imageDataSnapshot = ctx.getImageData(0, 0, els.blurCanvas.width, els.blurCanvas.height);
-    els.compressionInfo.textContent = `Ảnh #${state.activeImageIndex + 1}: Gốc ${formatKB(item.originalBytes)} → WebP: ${formatKB(item.compressedBytes)}`;
+    const origLabel = item.originalBytes ? `Gốc ${formatKB(item.originalBytes)} → ` : '';
+    els.compressionInfo.textContent = `Ảnh #${state.activeImageIndex + 1}: ${origLabel}WebP: ${formatKB(item.compressedBytes)}`;
     renderImageStrip();
+  }
+
+  function loadExistingUrlToQueue(url) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const w = img.naturalWidth || img.width || 800;
+        const h = img.naturalHeight || img.height || 600;
+        const offCanvas = document.createElement('canvas');
+        offCanvas.width = w;
+        offCanvas.height = h;
+        const offCtx = offCanvas.getContext('2d');
+        offCtx.drawImage(img, 0, 0, w, h);
+
+        state.images.push({
+          width: w,
+          height: h,
+          originalBytes: 0,
+          compressedBytes: 0,
+          compressedWebpDataUrl: url,
+          existingUrl: url,
+          imageDataSnapshot: offCtx.getImageData(0, 0, w, h),
+          undoStack: []
+        });
+        resolve(true);
+      };
+      img.onerror = () => resolve(false);
+      img.src = url;
+    });
+  }
+
+  function switchAdminTab(tabId) {
+    document.querySelectorAll('[data-admin-tab]').forEach((b) => {
+      b.classList.toggle('active', b.getAttribute('data-admin-tab') === tabId);
+    });
+    document.querySelectorAll('.admin-tab-pane').forEach((pane) => {
+      pane.classList.toggle('hidden', pane.id !== tabId);
+    });
+  }
+
+  function resetFeedbackForm() {
+    state.editingFbId = '';
+    els.fbEditId.value = '';
+    els.fbCreateForm.reset();
+    document.getElementById('fbCategory').value = 'Tử Vi';
+    document.getElementById('fbDate').value = new Date().toISOString().slice(0, 10);
+    els.fbFormHeading.textContent = '2. Ghi Chú & Phân Loại';
+    els.fbSubmitBtn.textContent = 'Lưu Feedback lên Website';
+    els.fbCancelEditBtn.classList.add('hidden');
+    state.images = [];
+    selectImageAt(-1);
+  }
+
+  async function startEditFeedback(fb) {
+    state.editingFbId = fb.id;
+    els.fbEditId.value = fb.id;
+    document.getElementById('fbCategory').value = fb.category || 'Tử Vi';
+    document.getElementById('fbDate').value = fb.date || new Date().toISOString().slice(0, 10);
+    const topicClean = (fb.topic || fb.title || '').trim();
+    const noteClean = (fb.note || '').trim();
+    document.getElementById('fbTopic').value = topicClean;
+    document.getElementById('fbNote').value = noteClean.toLowerCase() === topicClean.toLowerCase() ? '' : noteClean;
+    document.getElementById('fbFeatured').checked = Boolean(fb.featured);
+    els.fbFormHeading.textContent = '2. Chỉnh Sửa Feedback Đã Đăng';
+    els.fbSubmitBtn.textContent = 'Cập Nhật Feedback';
+    els.fbCancelEditBtn.classList.remove('hidden');
+
+    switchAdminTab('tabUpload');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    const urls = Array.isArray(fb.imageUrls) && fb.imageUrls.length > 0
+      ? fb.imageUrls
+      : (fb.imageUrl ? [fb.imageUrl] : []);
+    state.images = [];
+    for (const url of urls) {
+      await loadExistingUrlToQueue(url);
+    }
+    selectImageAt(state.images.length > 0 ? 0 : -1);
+    showToast('Đã nạp bài feedback để chỉnh sửa.');
   }
 
   function decodeFileToQueue(fileOrBlob) {
@@ -441,13 +533,13 @@
 
     document.querySelectorAll('[data-admin-tab]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        document.querySelectorAll('[data-admin-tab]').forEach((b) => b.classList.remove('active'));
-        btn.classList.add('active');
-        const targetId = btn.getAttribute('data-admin-tab');
-        document.querySelectorAll('.admin-tab-pane').forEach((pane) => {
-          pane.classList.toggle('hidden', pane.id !== targetId);
-        });
+        switchAdminTab(btn.getAttribute('data-admin-tab'));
       });
+    });
+
+    els.fbCancelEditBtn.addEventListener('click', () => {
+      resetFeedbackForm();
+      showToast('Đã hủy chế độ chỉnh sửa.');
     });
 
     els.pickFileBtn.addEventListener('click', () => els.fbFileInput.click());
@@ -516,38 +608,70 @@
         showToast('Vui lòng chọn hoặc dán (Ctrl+V) ít nhất 1 ảnh feedback trước.');
         return;
       }
+      const editId = state.editingFbId;
+      const topicVal = document.getElementById('fbTopic').value.trim();
+      const noteVal = document.getElementById('fbNote').value.trim();
+      const resolvedTitle = topicVal || 'Nghiệm lý thực tế';
       els.fbSubmitBtn.disabled = true;
-      els.fbSubmitBtn.textContent = `Đang lưu ${state.images.length} ảnh...`;
+      els.fbSubmitBtn.textContent = editId ? 'Đang cập nhật feedback...' : `Đang lưu ${state.images.length} ảnh...`;
       try {
-        await apiFetch('/api/feedbacks', {
-          method: 'POST',
-          body: JSON.stringify({
-            category: document.getElementById('fbCategory').value,
-            date: document.getElementById('fbDate').value,
-            topic: document.getElementById('fbTopic').value,
-            source: document.getElementById('fbSource').value,
-            title: document.getElementById('fbTitle').value,
-            note: document.getElementById('fbNote').value,
-            featured: document.getElementById('fbFeatured').checked,
-            imageDataList: state.images.map((img) => img.compressedWebpDataUrl)
-          })
-        });
-        els.fbCreateForm.reset();
-        document.getElementById('fbCategory').value = 'Tử Vi';
-        document.getElementById('fbDate').value = new Date().toISOString().slice(0, 10);
-        state.images = [];
-        selectImageAt(-1);
-        await loadAllData();
-        showToast('Đã lưu feedback mới lên website!');
+        if (editId) {
+          await apiFetch(`/api/feedbacks/${editId}`, {
+            method: 'PUT',
+            body: JSON.stringify({
+              category: document.getElementById('fbCategory').value,
+              date: document.getElementById('fbDate').value,
+              topic: topicVal,
+              title: resolvedTitle,
+              note: noteVal,
+              source: '',
+              featured: document.getElementById('fbFeatured').checked,
+              imageItems: state.images.map((img) =>
+                img.existingUrl ? { existingUrl: img.existingUrl } : { imageData: img.compressedWebpDataUrl }
+              )
+            })
+          });
+          resetFeedbackForm();
+          await loadAllData();
+          switchAdminTab('tabManageFb');
+          showToast('Đã cập nhật feedback!');
+        } else {
+          await apiFetch('/api/feedbacks', {
+            method: 'POST',
+            body: JSON.stringify({
+              category: document.getElementById('fbCategory').value,
+              date: document.getElementById('fbDate').value,
+              topic: topicVal,
+              title: resolvedTitle,
+              note: noteVal,
+              source: '',
+              featured: document.getElementById('fbFeatured').checked,
+              imageDataList: state.images.map((img) => img.compressedWebpDataUrl)
+            })
+          });
+          resetFeedbackForm();
+          await loadAllData();
+          showToast('Đã lưu feedback mới lên website!');
+        }
       } catch (err) {
         showToast(err.message);
       } finally {
         els.fbSubmitBtn.disabled = false;
-        els.fbSubmitBtn.textContent = 'Lưu Feedback lên Website';
+        els.fbSubmitBtn.textContent = state.editingFbId ? 'Cập Nhật Feedback' : 'Lưu Feedback lên Website';
       }
     });
 
     els.adminFbList.addEventListener('click', async (e) => {
+      const editBtn = e.target.closest('[data-edit-fb]');
+      if (editBtn) {
+        const id = editBtn.getAttribute('data-edit-fb');
+        const current = state.data.feedbacks.find((f) => f.id === id);
+        if (current) {
+          await startEditFeedback(current);
+        }
+        return;
+      }
+
       const delBtn = e.target.closest('[data-delete-fb]');
       if (delBtn) {
         const id = delBtn.getAttribute('data-delete-fb');

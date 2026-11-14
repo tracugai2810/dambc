@@ -155,10 +155,14 @@
       .map((item, idx) => {
         const imgs = getFeedbackImages(item);
         const mainImg = imgs[0] || '';
+        const topicText = item.topic || item.title || 'Nghiệm lý thực tế';
+        const extraNote = item.note && item.note.trim().toLowerCase() !== topicText.trim().toLowerCase() ? item.note.trim() : '';
+        const seoAlt = `Feedback ${item.category || 'Tử Vi'} - ${topicText}${extraNote ? ' - ' + extraNote.slice(0, 80) : ''} - Bùi Công Đam`;
+
         const thumbsHtml = imgs.length > 1
           ? `<div class="feedback-thumbs">${imgs.map((url, subIdx) => `
-              <button type="button" class="feedback-thumb-btn" data-open-lightbox="${idx}" data-img-index="${subIdx}" aria-label="Xem ảnh ${subIdx + 1} của ${escapeHtml(item.title)}">
-                <img src="${escapeHtml(url)}" alt="" loading="lazy" />
+              <button type="button" class="feedback-thumb-btn" data-open-lightbox="${idx}" data-img-index="${subIdx}" aria-label="Xem ảnh ${subIdx + 1} của ${escapeHtml(topicText)}">
+                <img src="${escapeHtml(url)}" alt="${escapeHtml(seoAlt)} (ảnh ${subIdx + 1})" loading="lazy" />
               </button>
             `).join('')}</div>`
           : '';
@@ -168,12 +172,12 @@
           <div class="feedback-card-head">
             <div class="badge-group">
               ${categoryBadge(item.category)}
-              ${item.topic ? `<span class="badge badge-topic">${escapeHtml(item.topic)}</span>` : ''}
+              ${item.topic ? `<span class="badge badge-topic">${escapeHtml(item.topic)}</span>` : (item.title ? `<span class="badge badge-topic">${escapeHtml(item.title)}</span>` : '')}
             </div>
             <span class="feedback-date">${escapeHtml(formatDate(item.date))}</span>
           </div>
-          <button type="button" class="feedback-media-btn" data-open-lightbox="${idx}" data-img-index="0" aria-label="Phóng to ảnh feedback: ${escapeHtml(item.title)}">
-            <img src="${escapeHtml(mainImg)}" alt="${escapeHtml(item.title)}" loading="lazy" />
+          <button type="button" class="feedback-media-btn" data-open-lightbox="${idx}" data-img-index="0" aria-label="Phóng to ảnh feedback: ${escapeHtml(topicText)}">
+            <img src="${escapeHtml(mainImg)}" alt="${escapeHtml(seoAlt)}" loading="lazy" />
             ${imgs.length > 1 ? `<span class="feedback-count-badge">${imgs.length} ảnh</span>` : ''}
             <span class="zoom-hint">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -181,11 +185,7 @@
             </span>
           </button>
           ${thumbsHtml}
-          <div class="feedback-body">
-            <h3 class="feedback-title">${escapeHtml(item.title)}</h3>
-            ${item.note ? `<p class="feedback-note">${escapeHtml(item.note)}</p>` : ''}
-            ${item.source ? `<div class="feedback-source">Nguồn: ${escapeHtml(item.source)}</div>` : ''}
-          </div>
+          <div class="sr-only">${escapeHtml(topicText)} ${escapeHtml(extraNote)}</div>
         </article>
       `;
       })
@@ -237,13 +237,23 @@
     const subIdx = Math.max(0, Math.min(state.lightboxSubIndex, imgs.length - 1));
     state.lightboxSubIndex = subIdx;
 
+    const displayTitle = item.topic || item.title || 'Feedback thực chứng';
+    const cleanNote = (item.note || '').trim();
+    const hasDistinctNote = Boolean(cleanNote) && cleanNote.toLowerCase() !== displayTitle.trim().toLowerCase();
+
     els.lightboxImg.src = imgs[subIdx] || '';
-    els.lightboxImg.alt = item.title || 'Ảnh feedback';
+    els.lightboxImg.alt = `Feedback ${item.category || 'Tử Vi'} - ${displayTitle}`;
     els.lightboxImg.style.transform = `scale(${state.zoom})`;
     els.lbZoomLabel.textContent = `${Math.round(state.zoom * 100)}%`;
     els.lightboxBadges.innerHTML = `${categoryBadge(item.category)}${item.topic ? `<span class="badge badge-topic">${escapeHtml(item.topic)}</span>` : ''}`;
-    els.lightboxTitle.textContent = item.title || '';
-    els.lightboxNote.textContent = item.note || 'Không có ghi chú thêm.';
+    els.lightboxTitle.textContent = displayTitle;
+    if (hasDistinctNote) {
+      els.lightboxNote.textContent = cleanNote;
+      els.lightboxNote.classList.remove('hidden');
+    } else {
+      els.lightboxNote.textContent = '';
+      els.lightboxNote.classList.add('hidden');
+    }
     els.lightboxImageCounter.textContent = imgs.length > 1 ? `Ảnh ${subIdx + 1} / ${imgs.length} trong bài này` : '';
 
     if (imgs.length > 1) {
@@ -260,7 +270,7 @@
       els.lightboxThumbs.innerHTML = '';
     }
 
-    els.lightboxSource.textContent = item.source ? `Nguồn: ${item.source}` : '';
+    els.lightboxSource.textContent = '';
     els.lightboxDate.textContent = item.date ? `Ngày lưu: ${formatDate(item.date)}` : '';
   }
 

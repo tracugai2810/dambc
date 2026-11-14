@@ -112,8 +112,9 @@
           </div>
 
           <div class="admin-panel">
-            <h2 style="margin: 0 0 14px; font-family: var(--font-display); font-size: 1.65rem;">2. Ghi Chú &amp; Phân Loại</h2>
+            <h2 id="fbFormHeading" style="margin: 0 0 14px; font-family: var(--font-display); font-size: 1.65rem;">2. Ghi Chú &amp; Phân Loại</h2>
             <form id="fbCreateForm">
+              <input id="fbEditId" type="hidden" />
               <div class="admin-grid-2" style="gap: 12px;">
                 <div class="form-group">
                   <label for="fbCategory" class="form-label">Mảng luận giải</label>
@@ -128,25 +129,14 @@
                 </div>
               </div>
 
-              <div class="admin-grid-2" style="gap: 12px;">
-                <div class="form-group">
-                  <label for="fbTopic" class="form-label">Chủ đề ngắn</label>
-                  <input id="fbTopic" type="text" class="form-control" placeholder="VD: Công danh, Tình duyên, Tìm đồ..." />
-                </div>
-                <div class="form-group">
-                  <label for="fbSource" class="form-label">Nguồn hội nhóm</label>
-                  <input id="fbSource" type="text" class="form-control" placeholder="VD: Hội Tử Vi, Zalo..." />
-                </div>
+              <div class="form-group">
+                <label for="fbTopic" class="form-label">Chủ đề / Tên ca luận giải (Hiển thị trên thẻ)</label>
+                <input id="fbTopic" type="text" class="form-control" placeholder="VD: Dò giờ sinh, Luận hạn kết hôn, Quẻ xin việc..." />
               </div>
 
               <div class="form-group">
-                <label for="fbTitle" class="form-label">Tiêu đề ngắn gọn (Hiển thị trên thẻ)</label>
-                <input id="fbTitle" type="text" class="form-control" placeholder="VD: Luận hạn công danh / hôn nhân ứng nghiệm thực tế" required />
-              </div>
-
-              <div class="form-group">
-                <label for="fbNote" class="form-label">Tóm tắt bối cảnh / Nghiệm lý (Tùy chọn)</label>
-                <textarea id="fbNote" class="form-control" placeholder="Ghi vài dòng bối cảnh lá số, đại vận hoặc chi tiết ứng nghiệm..."></textarea>
+                <label for="fbNote" class="form-label">Ghi chú nghiệm lý thêm (Tùy chọn — Hiện khi phóng to &amp; hỗ trợ SEO)</label>
+                <textarea id="fbNote" class="form-control" placeholder="Ghi vài dòng bối cảnh lá số, đại vận hoặc chi tiết ứng nghiệm (có thể bỏ trống)..."></textarea>
               </div>
 
               <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
@@ -154,9 +144,14 @@
                 <label for="fbFeatured" style="font-size: 0.9rem; cursor: pointer;">Đánh dấu là ca Nổi bật</label>
               </div>
 
-              <button id="fbSubmitBtn" type="submit" class="btn btn-primary" style="width: 100%;">
-                Lưu Feedback lên Website
-              </button>
+              <div style="display: flex; gap: 10px;">
+                <button id="fbSubmitBtn" type="submit" class="btn btn-primary" style="flex: 1;">
+                  Lưu Feedback lên Website
+                </button>
+                <button id="fbCancelEditBtn" type="button" class="btn btn-secondary hidden">
+                  Hủy sửa
+                </button>
+              </div>
             </form>
           </div>
         </div>
