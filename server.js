@@ -532,7 +532,7 @@ async function serveUploadedImage(res, fileName) {
       const ext = path.extname(safeName).toLowerCase();
       res.writeHead(200, {
         'Content-Type': MIME_TYPES[ext] || 'application/octet-stream',
-        'Cache-Control': 'public, max-age=31536000, immutable'
+        'Cache-Control': 'public, max-age=31536000, s-maxage=31536000, immutable'
       });
       res.end(buffer);
       return;
