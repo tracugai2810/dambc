@@ -16,6 +16,37 @@
       "note": ""
     }
   },
-  "feedbacks": [],
+  "feedbacks": [
+    {
+      "id": "fb-c41767f8",
+      "category": "Tử Vi",
+      "topic": "Dò giờ sinh",
+      "title": "Dò giờ sinh",
+      "note": "Dò giờ sinh",
+      "imageUrl": "/uploads/feedbacks/2026-11-14T04-47-38-do-gio-sinh-b9855c.webp",
+      "imageUrls": [
+        "/uploads/feedbacks/2026-11-14T04-47-38-do-gio-sinh-b9855c.webp",
+        "/uploads/feedbacks/2026-11-14T04-47-39-do-gio-sinh-77f9a7.webp"
+      ],
+      "date": "2026-11-14",
+      "source": "Facebook",
+      "featured": false
+    },
+    {
+      "id": "fb-1957c968",
+      "category": "Tử Vi",
+      "topic": "Mượn bàn khán lục thân",
+      "title": "Mượn bàn khán lục thân",
+      "note": "Mượn bàn khán lục thân",
+      "imageUrl": "/uploads/feedbacks/2026-11-14T04-47-07-muon-ban-khan-luc-than-d54820.webp",
+      "imageUrls": [
+        "/uploads/feedbacks/2026-11-14T04-47-07-muon-ban-khan-luc-than-d54820.webp",
+        "/uploads/feedbacks/2026-11-14T04-47-08-muon-ban-khan-luc-than-527a40.webp"
+      ],
+      "date": "2026-11-14",
+      "source": "Facebook",
+      "featured": false
+    }
+  ],
   "articles": []
 }
