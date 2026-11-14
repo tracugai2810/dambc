@@ -16,19 +16,7 @@
       "note": "Liên hệ trao đổi học thuật hoặc xem các ca luận giải mới nhất."
     }
   },
-  "feedbacks": [
-    {
-      "id": "fb-sample-1",
-      "category": "Lục Hào",
-      "topic": "Công danh & Chuyển việc",
-      "title": "Quẻ xin chuyển việc ứng vào ngày Mão, có quý nhân nữ hỗ trợ",
-      "note": "Quẻ Lục Hào lập cho thành viên trong hội nhóm: Quan Quỷ vượng hợp Thế, động hóa tiến thần nhưng gặp Tuần Không. Luận đúng ngày Mão xuất Không nhận offer và có lãnh đạo nữ nâng đỡ.",
-      "imageUrl": "/demo/fb-luchao-1.svg",
-      "date": "2026-10-18",
-      "source": "Hội Quán Kinh Dịch & Lục Hào",
-      "featured": true
-    }
-  ],
+  "feedbacks": [],
   "articles": [
     {
       "id": "art-sample-1",
