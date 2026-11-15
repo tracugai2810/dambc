@@ -1489,7 +1489,7 @@ a {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  padding: 12px;
+  padding: 16px 64px;
   user-select: none;
 }
 
@@ -1497,22 +1497,6 @@ a {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  transition: transform 0.18s ease;
-  cursor: zoom-in;
-  will-change: transform;
-}
-
-.lightbox-stage.is-zoomed {
-  touch-action: none;
-}
-
-.lightbox-stage.is-zoomed img {
-  cursor: grab;
-}
-
-.lightbox-stage.is-dragging img {
-  cursor: grabbing;
-  transition: none;
 }
 
 .lightbox-stage-close {
@@ -1539,52 +1523,41 @@ a {
   background: rgba(15, 109, 66, 0.9);
 }
 
-.lightbox-controls {
+.lightbox-nav-btn {
   position: absolute;
-  bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 5px 10px;
-  border-radius: var(--radius-pill);
-  background: rgba(10, 34, 23, 0.56);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 4;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.18);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  color: rgba(255, 255, 255, 0.94);
-  opacity: 0.88;
-  transition: opacity 0.2s ease, background 0.2s ease;
-}
-
-.lightbox-controls:hover {
-  opacity: 1;
-  background: rgba(10, 34, 23, 0.84);
-}
-
-.lightbox-controls button {
-  min-width: 44px;
-  min-height: 44px;
-  border: none;
-  background: transparent;
   color: #FFFFFF;
-  border-radius: var(--radius-pill);
-  cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
 }
 
-.lightbox-controls button.lb-zoom-label-btn {
-  min-width: 54px;
-  padding: 0 8px;
-  font-size: 0.78rem;
-  font-weight: 600;
+.lightbox-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.32);
+  transform: translateY(-50%) scale(1.06);
 }
 
-.lightbox-controls button:hover {
-  background: rgba(255, 255, 255, 0.16);
+.lightbox-nav-btn:active {
+  transform: translateY(-50%) scale(0.96);
+}
+
+.lightbox-nav-prev {
+  left: 16px;
+}
+
+.lightbox-nav-next {
+  right: 16px;
 }
 
 .lightbox-sidebar {
@@ -2064,8 +2037,25 @@ textarea.form-control {
     padding: 14px;
   }
 
+  .lightbox-stage {
+    padding: 12px 16px;
+  }
+
   .lightbox-stage-close {
     display: inline-flex;
+  }
+
+  .lightbox-nav-btn {
+    width: 42px;
+    height: 42px;
+  }
+
+  .lightbox-nav-prev {
+    left: 10px;
+  }
+
+  .lightbox-nav-next {
+    right: 10px;
   }
 
   .booking-section {

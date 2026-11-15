@@ -53,8 +53,6 @@
     lightboxImageCounter: document.getElementById('lightboxImageCounter'),
     lightboxSource: document.getElementById('lightboxSource'),
     lightboxDate: document.getElementById('lightboxDate'),
-    lbZoomLabel: document.getElementById('lbZoomLabel'),
-    lbZoomResetBtn: document.getElementById('lbZoomResetBtn'),
     lbStageCloseBtn: document.getElementById('lbStageCloseBtn'),
     lbCloseBtn: document.getElementById('lbCloseBtn'),
     lbBookingCta: document.getElementById('lbBookingCta'),
@@ -336,33 +334,12 @@
       .join('');
   }
 
-  function applyLightboxTransform() {
-    if (state.zoom <= 1) {
-      state.zoom = 1;
-      state.panX = 0;
-      state.panY = 0;
-    }
-    els.lightboxImg.style.transform = `translate3d(${state.panX}px, ${state.panY}px, 0) scale(${state.zoom})`;
-    els.lbZoomLabel.textContent = `${Math.round(state.zoom * 100)}%`;
-    if (els.lightboxStage) {
-      els.lightboxStage.classList.toggle('is-zoomed', state.zoom > 1);
-    }
-  }
-
-  function setLightboxZoom(nextZoom) {
-    state.zoom = Math.max(1, Math.min(3, Number(nextZoom.toFixed(2))));
-    applyLightboxTransform();
-  }
-
   function openLightbox(index, imgIndex = 0) {
     if (index < 0 || index >= state.filteredFeedbacks.length) return;
     state.lastFocusedEl = document.activeElement;
     state.lightboxIndex = index;
     const imgs = getFeedbackImages(state.filteredFeedbacks[index]);
     state.lightboxSubIndex = Math.max(0, Math.min(imgIndex, imgs.length - 1));
-    state.zoom = 1;
-    state.panX = 0;
-    state.panY = 0;
     updateLightboxContent();
     els.lightboxModal.classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -382,7 +359,6 @@
 
     els.lightboxImg.src = imgs[subIdx] || '';
     els.lightboxImg.alt = buildFeedbackAlt(item);
-    applyLightboxTransform();
     els.lightboxBadges.innerHTML = `${categoryBadge(item.category)}${item.topic ? `<span class="badge badge-topic">${escapeHtml(item.topic)}</span>` : ''}`;
     els.lightboxTitle.textContent = displayTitle;
     if (hasDistinctNote) {
@@ -453,9 +429,6 @@
       const prevImgs = getFeedbackImages(state.filteredFeedbacks[state.lightboxIndex]);
       state.lightboxSubIndex = Math.max(0, prevImgs.length - 1);
     }
-    state.zoom = 1;
-    state.panX = 0;
-    state.panY = 0;
     updateLightboxContent();
   }
 
@@ -468,104 +441,29 @@
       state.lightboxIndex = (state.lightboxIndex + 1) % state.filteredFeedbacks.length;
       state.lightboxSubIndex = 0;
     }
-    state.zoom = 1;
-    state.panX = 0;
-    state.panY = 0;
     updateLightboxContent();
   }
 
   function bindLightboxGestures() {
     if (!els.lightboxStage) return;
 
-    // Lăn chuột để zoom trên PC
-    els.lightboxStage.addEventListener('wheel', (e) => {
-      if (!els.lightboxModal.classList.contains('open')) return;
-      e.preventDefault();
-      const delta = e.deltaY < 0 ? 0.25 : -0.25;
-      setLightboxZoom(state.zoom + delta);
-    }, { passive: false });
-
-    // Nhấp đúp để bật/tắt zoom 200%
-    els.lightboxImg.addEventListener('dblclick', (e) => {
-      e.preventDefault();
-      setLightboxZoom(state.zoom > 1 ? 1 : 2);
-    });
-
-    // Kéo chuột khi đang phóng to > 100%
-    els.lightboxStage.addEventListener('mousedown', (e) => {
-      if (state.zoom <= 1 || e.target.closest('button')) return;
-      e.preventDefault();
-      state.isDragging = true;
-      state.dragStartX = e.clientX - state.panX;
-      state.dragStartY = e.clientY - state.panY;
-      els.lightboxStage.classList.add('is-dragging');
-    });
-
-    window.addEventListener('mousemove', (e) => {
-      if (!state.isDragging) return;
-      state.panX = e.clientX - state.dragStartX;
-      state.panY = e.clientY - state.dragStartY;
-      applyLightboxTransform();
-    });
-
-    window.addEventListener('mouseup', () => {
-      if (!state.isDragging) return;
-      state.isDragging = false;
-      els.lightboxStage.classList.remove('is-dragging');
-    });
-
-    // Cử chỉ chạm trên điện thoại: Vuốt ngang chuyển ảnh (khi zoom = 1) hoặc kéo ảnh (khi zoom > 1) + chạm đúp
     els.lightboxStage.addEventListener('touchstart', (e) => {
-      if (e.target.closest('button')) return;
-      if (e.touches.length === 1) {
-        const touch = e.touches[0];
-        const now = Date.now();
-        if (now - state.lastTapTime < 280) {
-          e.preventDefault();
-          setLightboxZoom(state.zoom > 1 ? 1 : 2);
-          state.lastTapTime = 0;
-          return;
-        }
-        state.lastTapTime = now;
-
-        if (state.zoom > 1) {
-          state.isDragging = true;
-          state.dragStartX = touch.clientX - state.panX;
-          state.dragStartY = touch.clientY - state.panY;
-          els.lightboxStage.classList.add('is-dragging');
-        } else {
-          state.swipeStartX = touch.clientX;
-          state.swipeStartY = touch.clientY;
-        }
-      }
-    }, { passive: false });
-
-    els.lightboxStage.addEventListener('touchmove', (e) => {
-      if (!state.isDragging || state.zoom <= 1 || e.touches.length !== 1) return;
-      e.preventDefault();
-      const touch = e.touches[0];
-      state.panX = touch.clientX - state.dragStartX;
-      state.panY = touch.clientY - state.dragStartY;
-      applyLightboxTransform();
-    }, { passive: false });
+      if (e.target.closest('button') || e.touches.length !== 1) return;
+      state.swipeStartX = e.touches[0].clientX;
+      state.swipeStartY = e.touches[0].clientY;
+    }, { passive: true });
 
     els.lightboxStage.addEventListener('touchend', (e) => {
-      if (state.isDragging) {
-        state.isDragging = false;
-        els.lightboxStage.classList.remove('is-dragging');
-        return;
-      }
-      if (state.zoom === 1 && state.swipeStartX && e.changedTouches.length === 1) {
-        const dx = e.changedTouches[0].clientX - state.swipeStartX;
-        const dy = e.changedTouches[0].clientY - state.swipeStartY;
-        state.swipeStartX = 0;
-        state.swipeStartY = 0;
-        if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.35) {
-          if (dx < 0) {
-            stepLightboxNext();
-          } else {
-            stepLightboxPrev();
-          }
+      if (!state.swipeStartX || e.changedTouches.length !== 1) return;
+      const dx = e.changedTouches[0].clientX - state.swipeStartX;
+      const dy = e.changedTouches[0].clientY - state.swipeStartY;
+      state.swipeStartX = 0;
+      state.swipeStartY = 0;
+      if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.35) {
+        if (dx < 0) {
+          stepLightboxNext();
+        } else {
+          stepLightboxPrev();
         }
       }
     });
@@ -731,20 +629,6 @@
     document.getElementById('lbPrevBtn').addEventListener('click', stepLightboxPrev);
     document.getElementById('lbNextBtn').addEventListener('click', stepLightboxNext);
 
-    document.getElementById('lbZoomInBtn').addEventListener('click', () => {
-      setLightboxZoom(state.zoom + 0.25);
-    });
-
-    document.getElementById('lbZoomOutBtn').addEventListener('click', () => {
-      setLightboxZoom(state.zoom - 0.25);
-    });
-
-    if (els.lbZoomResetBtn) {
-      els.lbZoomResetBtn.addEventListener('click', () => {
-        setLightboxZoom(1);
-      });
-    }
-
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         closeLightbox();
@@ -752,9 +636,6 @@
       } else if (els.lightboxModal.classList.contains('open')) {
         if (e.key === 'ArrowLeft') stepLightboxPrev();
         if (e.key === 'ArrowRight') stepLightboxNext();
-        if (e.key === '+' || e.key === '=') setLightboxZoom(state.zoom + 0.25);
-        if (e.key === '-') setLightboxZoom(state.zoom - 0.25);
-        if (e.key === '0') setLightboxZoom(1);
       }
     });
 
