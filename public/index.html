@@ -5,16 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Bùi Công Đam — Luận Giải &amp; Nghiệm Lý Tử Vi, Lục Hào</title>
   <meta name="description" content="Bùi Công Đam — Luận giải Tử Vi Đẩu Số, gieo quẻ Lục Hào Kinh Dịch, dò giờ sinh và lưu trữ hồ sơ thực chứng. Liên hệ đặt lịch tư vấn qua Zalo." />
-  <meta name="keywords" content="Bùi Công Đam, luận giải Tử Vi, xem Tử Vi Đẩu Số, gieo quẻ Kinh Dịch, dò giờ sinh, nghiệm lý thực chứng, đặt lịch tư vấn" />
+  <meta name="keywords" content="Bùi Công Đam, dambc, luận giải Tử Vi, xem Tử Vi Đẩu Số, gieo quẻ Lục Hào Kinh Dịch, dò giờ sinh, nghiệm lý thực chứng, đặt lịch tư vấn" />
   <meta name="author" content="Bùi Công Đam" />
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
   <meta name="theme-color" content="#0F6D42" />
 
-  <link rel="canonical" href="https://dambc.vercel.app/" />
-  <link rel="alternate" hreflang="vi" href="https://dambc.vercel.app/" />
-  <link rel="alternate" hreflang="x-default" href="https://dambc.vercel.app/" />
+  <link rel="canonical" href="https://dambc.io.vn/" />
+  <link rel="alternate" hreflang="vi" href="https://dambc.io.vn/" />
+  <link rel="alternate" hreflang="x-default" href="https://dambc.io.vn/" />
   <link rel="icon" type="image/png" href="/logo-dam.png" />
   <link rel="apple-touch-icon" href="/logo-dam.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="preload" as="image" href="/logo-dam.png" fetchpriority="high" />
 
   <!-- Open Graph / Chia sẻ Facebook & Zalo -->
   <meta property="og:type" content="website" />
@@ -22,19 +24,32 @@
   <meta property="og:site_name" content="Bùi Công Đam — Tử Vi &amp; Kinh Dịch" />
   <meta property="og:title" content="Bùi Công Đam — Luận Giải &amp; Nghiệm Lý Tử Vi, Lục Hào" />
   <meta property="og:description" content="Hồ sơ thực chứng Tử Vi Đẩu Số &amp; Kinh Dịch, bài viết nghiệm lý và liên hệ đặt lịch tư vấn trực tiếp." />
-  <meta property="og:url" content="https://dambc.vercel.app/" />
-  <meta property="og:image" content="https://dambc.vercel.app/logo-dam.png" />
-  <meta property="og:image:alt" content="Ấn chương Bùi Công Đam" />
+  <meta property="og:url" content="https://dambc.io.vn/" />
+  <meta property="og:image" content="https://dambc.io.vn/logo-dam.png" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1024" />
+  <meta property="og:image:height" content="768" />
+  <meta property="og:image:alt" content="Ấn chương Bùi Công Đam — Tử Vi Đẩu Số &amp; Lục Hào Kinh Dịch" />
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Bùi Công Đam — Luận Giải &amp; Nghiệm Lý Tử Vi, Lục Hào" />
   <meta name="twitter:description" content="Lưu trữ hồ sơ thực chứng Tử Vi Đẩu Số &amp; Kinh Dịch. Đặt lịch tư vấn trực tiếp." />
-  <meta name="twitter:image" content="https://dambc.vercel.app/logo-dam.png" />
+  <meta name="twitter:image" content="https://dambc.io.vn/logo-dam.png" />
+
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('bcd_theme');
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
+      } catch (e) {}
+    })();
+  </script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/styles.css" />
   <script id="seoSchema" type="application/ld+json">
   {
@@ -42,28 +57,37 @@
     "@graph": [
       {
         "@type": "WebSite",
-        "@id": "https://dambc.vercel.app/#website",
-        "url": "https://dambc.vercel.app/",
+        "@id": "https://dambc.io.vn/#website",
+        "url": "https://dambc.io.vn/",
         "name": "Bùi Công Đam — Luận Giải & Nghiệm Lý Tử Vi, Lục Hào",
         "description": "Bùi Công Đam — Luận giải Tử Vi Đẩu Số, gieo quẻ Lục Hào Kinh Dịch, dò giờ sinh và lưu trữ hồ sơ thực chứng.",
         "inLanguage": "vi"
       },
       {
+        "@type": "ProfilePage",
+        "@id": "https://dambc.io.vn/#webpage",
+        "url": "https://dambc.io.vn/",
+        "name": "Bùi Công Đam — Luận Giải & Nghiệm Lý Tử Vi, Lục Hào",
+        "isPartOf": { "@id": "https://dambc.io.vn/#website" },
+        "mainEntity": { "@id": "https://dambc.io.vn/#person" },
+        "inLanguage": "vi"
+      },
+      {
         "@type": "Person",
-        "@id": "https://dambc.vercel.app/#person",
+        "@id": "https://dambc.io.vn/#person",
         "name": "Bùi Công Đam",
-        "image": "https://dambc.vercel.app/logo-dam.png",
-        "url": "https://dambc.vercel.app/",
+        "image": "https://dambc.io.vn/logo-dam.png",
+        "url": "https://dambc.io.vn/",
         "sameAs": ["https://luchao.io.vn/", "https://gieoque.id.vn/"],
-        "knowsAbout": ["Tử Vi Đẩu Số", "Lục Hào Kinh Dịch", "Dò giờ sinh", "Nghiệm lý tử vi"]
+        "knowsAbout": ["Tử Vi Đẩu Số", "Lục Hào Kinh Dịch", "Dò giờ sinh thực chứng", "Nghiệm lý tử vi"]
       },
       {
         "@type": "ProfessionalService",
-        "@id": "https://dambc.vercel.app/#service",
+        "@id": "https://dambc.io.vn/#service",
         "name": "Luận Giải Tử Vi & Lục Hào — Bùi Công Đam",
-        "url": "https://dambc.vercel.app/",
-        "image": "https://dambc.vercel.app/logo-dam.png",
-        "provider": { "@id": "https://dambc.vercel.app/#person" },
+        "url": "https://dambc.io.vn/",
+        "image": "https://dambc.io.vn/logo-dam.png",
+        "provider": { "@id": "https://dambc.io.vn/#person" },
         "areaServed": "VN",
         "serviceType": ["Luận giải Tử Vi Đẩu Số", "Gieo quẻ Lục Hào Kinh Dịch", "Dò giờ sinh thực chứng"]
       },
@@ -78,7 +102,7 @@
             "url": "https://luchao.io.vn/",
             "applicationCategory": "UtilitiesApplication",
             "operatingSystem": "Web",
-            "creator": { "@id": "https://dambc.vercel.app/#person" }
+            "creator": { "@id": "https://dambc.io.vn/#person" }
           },
           {
             "@type": "WebApplication",
@@ -87,7 +111,7 @@
             "url": "https://gieoque.id.vn/",
             "applicationCategory": "UtilitiesApplication",
             "operatingSystem": "Web",
-            "creator": { "@id": "https://dambc.vercel.app/#person" }
+            "creator": { "@id": "https://dambc.io.vn/#person" }
           }
         ]
       }
@@ -96,11 +120,13 @@
   </script>
 </head>
 <body>
+  <a href="#top" class="skip-link">Chuyển đến nội dung chính</a>
+
   <header class="site-header">
     <div class="container header-inner">
       <a href="#top" class="brand-link" aria-label="Trang chủ Bùi Công Đam">
         <span class="brand-logo-wrap">
-          <img src="/logo-dam.png" alt="Logo Bùi Công Đam" width="58" height="42" />
+          <img src="/logo-dam.png" alt="Logo Bùi Công Đam" width="58" height="42" decoding="async" />
         </span>
         <span class="brand-text-wrap">
           <span class="brand-name" id="headerName">Bùi Công Đam</span>
@@ -110,13 +136,13 @@
 
       <div class="nav-group">
         <nav class="nav-links" aria-label="Điều hướng chính">
-          <a href="#about" class="nav-link">Giới thiệu</a>
-          <a href="#feedbacks" class="nav-link">Thực chứng</a>
-          <a href="#articles" class="nav-link">Bài viết</a>
-          <a href="#tools" class="nav-link">Công cụ</a>
+          <a href="#about" class="nav-link active" data-nav-section="about">Giới thiệu</a>
+          <a href="#feedbacks" class="nav-link" data-nav-section="feedbacks">Thực chứng</a>
+          <a href="#articles" class="nav-link" data-nav-section="articles">Bài viết</a>
+          <a href="#tools" class="nav-link" data-nav-section="tools">Công cụ</a>
         </nav>
 
-        <a href="#booking" class="btn btn-primary btn-sm nav-book-btn">Đặt lịch</a>
+        <a href="#booking" class="btn btn-primary btn-sm nav-book-btn" data-nav-section="booking">Đặt lịch</a>
 
         <button id="themeToggle" class="icon-btn" type="button" aria-label="Chuyển đổi giao diện Sáng hoặc Tối" title="Đổi giao diện Sáng / Tối">
           <svg id="themeIconSun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -129,6 +155,16 @@
         </button>
       </div>
     </div>
+
+    <nav class="mobile-quick-nav" aria-label="Điều hướng nhanh trên di động">
+      <div class="container mobile-quick-nav-inner">
+        <a href="#about" class="mobile-nav-pill active" data-nav-section="about">Giới thiệu</a>
+        <a href="#feedbacks" class="mobile-nav-pill" data-nav-section="feedbacks">Thực chứng</a>
+        <a href="#articles" class="mobile-nav-pill" data-nav-section="articles">Bài viết</a>
+        <a href="#tools" class="mobile-nav-pill" data-nav-section="tools">Công cụ</a>
+        <a href="#booking" class="mobile-nav-pill" data-nav-section="booking">Đặt lịch</a>
+      </div>
+    </nav>
   </header>
 
   <main id="top">
@@ -143,13 +179,9 @@
             <div class="editorial-eyebrow">Tử Vi Đẩu Số &bull; Lục Hào Kinh Dịch</div>
             <h1 class="hero-title" id="heroName">Bùi Công Đam</h1>
 
-            <p class="hero-bio" id="heroBio">
-              Đang tải thông tin cá nhân...
-            </p>
+            <p class="hero-bio" id="heroBio">Tôi là Bùi Công Đam — người nghiên cứu, thực hành và chiêm nghiệm hai bộ môn Lục Hào (Kinh Dịch) và Tử Vi Đẩu Số. Website này là sổ tay cá nhân dùng để lưu giữ hồ sơ thực chứng, các phản hồi (feedback) từ những ca luận giải thực tế trên các hội nhóm, cùng những ghi chép nghiệm lý qua năm tháng.</p>
 
-            <blockquote class="hero-philosophy" id="heroPhilosophy">
-              Luận giải lấy thực chứng làm gốc, giữ lại những điều đã được thời gian kiểm chứng.
-            </blockquote>
+            <blockquote class="hero-philosophy" id="heroPhilosophy">Luận giải lấy thực chứng làm gốc, lấy đạo lý làm nền — không huyễn hoặc, chỉ giữ lại những điều đã được thời gian kiểm chứng.</blockquote>
 
             <div class="hero-actions">
               <a href="#booking" class="btn btn-primary">
@@ -163,7 +195,7 @@
 
           <div class="hero-logo-stage">
             <div class="jade-medallion">
-              <img src="/logo-dam.png" alt="Ấn chương Bùi Công Đam" class="hero-logo-img" width="410" height="300" />
+              <img src="/logo-dam.png" alt="Ấn chương Bùi Công Đam" class="hero-logo-img" width="410" height="300" fetchpriority="high" decoding="async" />
             </div>
             <div class="hero-logo-caption">Ấn chương Bùi Công Đam</div>
           </div>
@@ -184,15 +216,15 @@
         <div class="section-header">
           <div>
             <h2 class="section-title" id="feedbacksHeading">Phản Hồi Thực Chứng</h2>
-            <p class="section-subtitle">Tổng hợp phản hồi thực tế sau khi luận giải. Bấm vào từng ảnh để xem chi tiết.</p>
+            <p class="section-subtitle">Tổng hợp phản hồi thực tế sau khi luận giải. Bấm vào từng ảnh để phóng to và xem chi tiết.</p>
           </div>
         </div>
 
         <div class="toolbar">
           <div class="filter-tabs" role="tablist" aria-label="Lọc feedback theo bộ môn">
-            <button type="button" class="filter-tab active" data-fb-filter="all">Tất cả</button>
-            <button type="button" class="filter-tab" data-fb-filter="Tử Vi">Tử Vi</button>
-            <button type="button" class="filter-tab" data-fb-filter="Lục Hào">Lục Hào</button>
+            <button type="button" role="tab" aria-selected="true" class="filter-tab active" data-fb-filter="all" data-base-label="Tất cả">Tất cả</button>
+            <button type="button" role="tab" aria-selected="false" class="filter-tab" data-fb-filter="Tử Vi" data-base-label="Tử Vi">Tử Vi</button>
+            <button type="button" role="tab" aria-selected="false" class="filter-tab" data-fb-filter="Lục Hào" data-base-label="Lục Hào">Lục Hào</button>
           </div>
 
           <div class="search-box">
@@ -200,13 +232,15 @@
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
-            <input id="feedbackSearch" class="search-input" type="search" placeholder="Tìm theo chủ đề (công việc, giờ sinh, hôn nhân...)" aria-label="Tìm kiếm feedback" />
+            <input id="feedbackSearch" class="search-input" type="search" placeholder="Tìm theo chủ đề (dò giờ sinh, công việc, lục thân...)" aria-label="Tìm kiếm feedback" />
+            <button type="button" id="feedbackSearchClear" class="search-clear-btn hidden" aria-label="Xóa từ khóa tìm kiếm" title="Xóa tìm kiếm">&times;</button>
           </div>
         </div>
 
         <div id="feedbackGrid" class="masonry-grid"></div>
         <div id="feedbackEmpty" class="empty-state hidden">
-          Chưa tìm thấy phản hồi nào phù hợp với bộ lọc hiện tại.
+          <div>Chưa tìm thấy phản hồi nào phù hợp với bộ lọc hiện tại.</div>
+          <button type="button" id="resetFbFilterBtn" class="btn btn-secondary btn-sm" style="margin-top: 12px;">Xem tất cả phản hồi</button>
         </div>
       </section>
 
@@ -227,9 +261,9 @@
           </div>
 
           <div class="filter-tabs" role="tablist" aria-label="Lọc bài viết theo bộ môn">
-            <button type="button" class="filter-tab active" data-art-filter="all">Tất cả</button>
-            <button type="button" class="filter-tab" data-art-filter="Tử Vi">Tử Vi</button>
-            <button type="button" class="filter-tab" data-art-filter="Lục Hào">Lục Hào</button>
+            <button type="button" role="tab" aria-selected="true" class="filter-tab active" data-art-filter="all" data-base-label="Tất cả">Tất cả</button>
+            <button type="button" role="tab" aria-selected="false" class="filter-tab" data-art-filter="Tử Vi" data-base-label="Tử Vi">Tử Vi</button>
+            <button type="button" role="tab" aria-selected="false" class="filter-tab" data-art-filter="Lục Hào" data-base-label="Lục Hào">Lục Hào</button>
           </div>
         </div>
 
@@ -403,7 +437,7 @@
       <div>
         <div class="brand-link" style="margin-bottom: 10px;">
           <span class="brand-logo-wrap">
-            <img src="/logo-dam.png" alt="Logo Bùi Công Đam" width="58" height="42" />
+            <img src="/logo-dam.png" alt="Logo Bùi Công Đam" width="58" height="42" loading="lazy" decoding="async" />
           </span>
           <span class="brand-text-wrap">
             <span class="brand-name" id="footerName">Bùi Công Đam</span>
@@ -414,7 +448,7 @@
           Lưu trữ hồ sơ cá nhân &amp; nghiệm lý thực tế.
         </p>
         <p style="margin: 10px 0 0; font-size: 0.78rem; color: var(--text-tertiary);">
-          &copy; <span id="currentYear"></span> Bùi Công Đam
+          &copy; <span id="currentYear"></span> Bùi Công Đam &bull; dambc.io.vn
         </p>
       </div>
 
@@ -435,21 +469,26 @@
   <!-- Lightbox Xem Ảnh Feedback Phóng To -->
   <div id="lightboxModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="lightboxTitle">
     <div class="lightbox-shell">
-      <div class="lightbox-stage">
-        <img id="lightboxImg" src="/logo-dam.png" alt="Hình ảnh phản hồi thực chứng" />
+      <div class="lightbox-stage" id="lightboxStage">
+        <button type="button" id="lbStageCloseBtn" class="lightbox-stage-close" aria-label="Đóng cửa sổ xem ảnh" title="Đóng (Esc)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+        <img id="lightboxImg" src="/logo-dam.png" alt="Hình ảnh phản hồi thực chứng" draggable="false" />
         <div class="lightbox-controls">
           <button type="button" id="lbPrevBtn" aria-label="Ảnh trước" title="Ảnh trước (Mũi tên trái)">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
           </button>
           <button type="button" id="lbZoomOutBtn" aria-label="Thu nhỏ" title="Thu nhỏ">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="8" y1="11" x2="14" y2="11"></line><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="8" y1="11" x2="14" y2="11"></line><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           </button>
-          <span id="lbZoomLabel" style="font-size: 0.78rem; padding: 0 6px;">100%</span>
+          <button type="button" id="lbZoomResetBtn" class="lb-zoom-label-btn" title="Nhấn để đặt lại 100%">
+            <span id="lbZoomLabel">100%</span>
+          </button>
           <button type="button" id="lbZoomInBtn" aria-label="Phóng to" title="Phóng to">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           </button>
           <button type="button" id="lbNextBtn" aria-label="Ảnh tiếp theo" title="Ảnh tiếp theo (Mũi tên phải)">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
           </button>
         </div>
       </div>
@@ -459,18 +498,21 @@
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 16px;">
             <div class="badge-group" id="lightboxBadges"></div>
             <button type="button" id="lbCloseBtn" class="modal-close" aria-label="Đóng cửa sổ xem ảnh">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
           </div>
-          <div id="lightboxTitle" style="margin: 0 0 12px; font-size: 1.45rem; font-weight: 700; line-height: 1.3;"></div>
+          <div id="lightboxTitle" style="margin: 0 0 12px; font-size: 1.38rem; font-weight: 700; line-height: 1.32;"></div>
           <p id="lightboxNote" style="margin: 0; color: var(--text-secondary); font-size: 0.94rem; line-height: 1.7;"></p>
           <div id="lightboxThumbs" class="lightbox-thumbs hidden"></div>
         </div>
 
-        <div style="border-top: 1px solid var(--border-subtle); padding-top: 14px; font-size: 0.8rem; color: var(--text-tertiary);">
-          <div id="lightboxImageCounter" style="margin-bottom: 4px; color: var(--jade-primary); font-weight: 500;"></div>
+        <div style="margin-top: auto; border-top: 1px solid var(--border-subtle); padding-top: 14px; font-size: 0.8rem; color: var(--text-tertiary);">
+          <div id="lightboxImageCounter" style="margin-bottom: 4px; color: var(--jade-primary); font-weight: 600;"></div>
           <div id="lightboxSource"></div>
           <div id="lightboxDate" style="margin-top: 4px;"></div>
+          <a href="#booking" id="lbBookingCta" class="btn btn-primary btn-sm" style="width: 100%; margin-top: 12px;">
+            Đặt lịch tư vấn trực tiếp
+          </a>
         </div>
       </div>
     </div>
@@ -485,15 +527,20 @@
           <div id="articleModalTitle" style="margin: 0; font-size: 1.65rem; font-weight: 700; line-height: 1.28;"></div>
         </div>
         <button type="button" id="articleModalClose" class="modal-close" aria-label="Đóng bài viết">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
       <div id="articleModalBody" class="article-content"></div>
+      <div class="article-modal-footer">
+        <span style="font-size: 0.88rem; color: var(--text-secondary);">Cần luận giải lá số hoặc gieo quẻ thực chứng?</span>
+        <a href="#booking" id="artBookingCta" class="btn btn-primary btn-sm">Đặt lịch tư vấn</a>
+      </div>
     </div>
   </div>
 
   <div id="homeToast" class="toast" role="status" aria-live="polite"></div>
 
+  <!--SEO_INITIAL_DATA-->
   <!--SEO_NOSCRIPT_SUMMARY-->
   <script src="/js/main.js"></script>
 </body>

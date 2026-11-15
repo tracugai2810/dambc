@@ -1,0 +1,19 @@
+{
+  "name": "Bùi Công Đam — Luận Giải & Nghiệm Lý Tử Vi, Lục Hào",
+  "short_name": "Bùi Công Đam",
+  "description": "Luận giải Tử Vi Đẩu Số, gieo quẻ Lục Hào Kinh Dịch, dò giờ sinh và lưu trữ hồ sơ thực chứng.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F2F8F5",
+  "theme_color": "#0F6D42",
+  "lang": "vi",
+  "icons": [
+    {
+      "src": "/logo-dam.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

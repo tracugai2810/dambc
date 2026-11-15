@@ -30,6 +30,10 @@
       "destination": "/api/index?__path=/uploads/feedbacks/:filename"
     },
     {
+      "source": "/index.html",
+      "destination": "/api/index?__path=/"
+    },
+    {
       "source": "/",
       "destination": "/api/index?__path=/"
     }

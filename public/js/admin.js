@@ -102,7 +102,7 @@
   }
 
   async function loadAllData() {
-    const data = await apiFetch('/api/data');
+    const data = await apiFetch('/api/data?admin=1');
     state.data = data;
     renderStats();
     renderFeedbackList();
@@ -504,6 +504,16 @@
   }
 
   function bindEvents() {
+    const adminThemeBtn = document.getElementById('adminThemeToggle');
+    if (adminThemeBtn) {
+      adminThemeBtn.addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('bcd_theme', next);
+      });
+    }
+
     document.getElementById('fbDate').value = new Date().toISOString().slice(0, 10);
     document.getElementById('artDate').value = new Date().toISOString().slice(0, 10);
 

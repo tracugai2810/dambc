@@ -34,6 +34,7 @@ loadEnv();
 
 const IS_VERCEL = Boolean(process.env.VERCEL);
 const PORT = Number(process.env.PORT) || 3000;
+const CANONICAL_ORIGIN = (process.env.SITE_URL || 'https://dambc.io.vn').trim().replace(/\/+$/, '');
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'dambc123';
 const AUTH_SECRET = process.env.AUTH_SECRET || crypto.createHash('sha256').update(`bcd:${ADMIN_PASSWORD}`).digest('hex');
 
@@ -47,6 +48,7 @@ const MIME_TYPES = {
   '.css': 'text/css; charset=utf-8',
   '.js': 'application/javascript; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
+  '.webmanifest': 'application/manifest+json; charset=utf-8',
   '.webp': 'image/webp',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
@@ -56,13 +58,21 @@ const MIME_TYPES = {
   '.ico': 'image/x-icon'
 };
 
+const DEFAULT_SECURITY_HEADERS = {
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'X-Frame-Options': 'SAMEORIGIN'
+};
+
 const IMAGE_EXTENSIONS = new Set(['.webp', '.png', '.jpg', '.jpeg', '.gif']);
 const ALLOWED_CATEGORIES = new Set(['Lục Hào', 'Tử Vi']);
 
 const memoryCache = {
   data: null,
   sha: null,
-  updatedAt: 0
+  updatedAt: 0,
+  files: null,
+  filesUpdatedAt: 0
 };
 
 function getDefaultData() {
@@ -280,16 +290,23 @@ function normalizeCategory(value) {
   return ALLOWED_CATEGORIES.has(value) ? value : 'Tử Vi';
 }
 
-async function listUploadFiles() {
+async function listUploadFiles(options = {}) {
+  const fresh = Boolean(options.fresh);
   if (USE_GITHUB) {
+    if (!fresh && memoryCache.files && Date.now() - memoryCache.filesUpdatedAt < 15000) {
+      return memoryCache.files;
+    }
     try {
       const res = await githubApi(`/repos/${GITHUB_REPO}/contents/data/uploads/feedbacks?ref=${encodeURIComponent(GITHUB_BRANCH)}`);
       if (res.ok) {
         const items = await res.json();
         if (Array.isArray(items)) {
-          return items
+          const parsedFiles = items
             .filter((item) => item.type === 'file' && IMAGE_EXTENSIONS.has(path.extname(item.name).toLowerCase()))
             .map((item) => ({ name: item.name, size: Number(item.size) || 0, date: new Date().toISOString().slice(0, 10) }));
+          memoryCache.files = parsedFiles;
+          memoryCache.filesUpdatedAt = Date.now();
+          return parsedFiles;
         }
       }
     } catch (err) {
@@ -427,6 +444,7 @@ function requireAdmin(req, res) {
 function sendJson(res, statusCode, payload, extraHeaders = {}) {
   const body = JSON.stringify(payload);
   res.writeHead(statusCode, {
+    ...DEFAULT_SECURITY_HEADERS,
     'Content-Type': 'application/json; charset=utf-8',
     'Cache-Control': 'no-store',
     ...extraHeaders
@@ -492,6 +510,8 @@ async function saveBase64Image(imageData, fileNameHint = '') {
 
   if (USE_GITHUB) {
     await githubPutFile(`data/uploads/feedbacks/${fileName}`, buffer, `Thêm ảnh feedback ${fileName}`);
+    memoryCache.files = null;
+    memoryCache.filesUpdatedAt = 0;
   } else {
     ensureLocalDataSetup();
     fs.writeFileSync(path.join(UPLOAD_DIR, fileName), buffer);
@@ -509,6 +529,8 @@ async function deleteUploadedImage(imageUrl) {
   const fileName = path.basename(imageUrl);
   if (USE_GITHUB) {
     await githubDeleteFile(`data/uploads/feedbacks/${fileName}`, `Xóa ảnh feedback ${fileName}`);
+    memoryCache.files = null;
+    memoryCache.filesUpdatedAt = 0;
     return;
   }
   const target = path.join(UPLOAD_DIR, fileName);
@@ -517,13 +539,13 @@ async function deleteUploadedImage(imageUrl) {
   }
 }
 
-function serveStaticFile(res, baseDir, relativePath, cacheControl = 'public, max-age=3600') {
+function serveStaticFile(res, baseDir, relativePath, cacheControl = null) {
   const safeRel = path.normalize(relativePath).replace(/^(\.\.(\/|\\|$))+/, '');
   const fullPath = path.resolve(baseDir, safeRel);
   const resolvedBase = path.resolve(baseDir);
 
   if (!fullPath.startsWith(resolvedBase + path.sep) && fullPath !== resolvedBase) {
-    res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.writeHead(403, { ...DEFAULT_SECURITY_HEADERS, 'Content-Type': 'text/plain; charset=utf-8' });
     res.end('Forbidden');
     return true;
   }
@@ -533,9 +555,13 @@ function serveStaticFile(res, baseDir, relativePath, cacheControl = 'public, max
 
   const ext = path.extname(fullPath).toLowerCase();
   const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+  const defaultCache = IMAGE_EXTENSIONS.has(ext) || ext === '.svg' || ext === '.ico'
+    ? 'public, max-age=604800, stale-while-revalidate=86400'
+    : 'public, max-age=3600, stale-while-revalidate=600';
   res.writeHead(200, {
+    ...DEFAULT_SECURITY_HEADERS,
     'Content-Type': contentType,
-    'Cache-Control': cacheControl
+    'Cache-Control': cacheControl || defaultCache
   });
   fs.createReadStream(fullPath).pipe(res);
   return true;
@@ -543,7 +569,7 @@ function serveStaticFile(res, baseDir, relativePath, cacheControl = 'public, max
 
 async function serveUploadedImage(res, fileName) {
   const safeName = path.basename(fileName);
-  if (serveStaticFile(res, UPLOAD_DIR, safeName, 'public, max-age=86400')) {
+  if (serveStaticFile(res, UPLOAD_DIR, safeName, 'public, max-age=31536000, immutable')) {
     return;
   }
   if (USE_GITHUB) {
@@ -551,6 +577,7 @@ async function serveUploadedImage(res, fileName) {
     if (buffer) {
       const ext = path.extname(safeName).toLowerCase();
       res.writeHead(200, {
+        ...DEFAULT_SECURITY_HEADERS,
         'Content-Type': MIME_TYPES[ext] || 'application/octet-stream',
         'Cache-Control': 'public, max-age=31536000, s-maxage=31536000, immutable'
       });
@@ -558,7 +585,7 @@ async function serveUploadedImage(res, fileName) {
       return;
     }
   }
-  res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+  res.writeHead(404, { ...DEFAULT_SECURITY_HEADERS, 'Content-Type': 'text/plain; charset=utf-8' });
   res.end('Not Found');
 }
 
@@ -566,11 +593,8 @@ function sortByDateDesc(items) {
   return [...items].sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
 }
 
-function getOriginUrl(req) {
-  const protoHeader = String(req.headers['x-forwarded-proto'] || '').split(',')[0].trim();
-  const proto = protoHeader || (IS_VERCEL ? 'https' : 'http');
-  const host = req.headers['x-forwarded-host'] || req.headers.host || `localhost:${PORT}`;
-  return `${proto}://${host}`.replace(/\/+$/, '');
+function getOriginUrl() {
+  return CANONICAL_ORIGIN;
 }
 
 function escapeText(str) {
@@ -595,6 +619,7 @@ function serveRobotsTxt(req, res) {
     ''
   ].join('\n');
   res.writeHead(200, {
+    ...DEFAULT_SECURITY_HEADERS,
     'Content-Type': 'text/plain; charset=utf-8',
     'Cache-Control': 'public, max-age=0, s-maxage=3600'
   });
@@ -614,6 +639,10 @@ async function serveSitemapXml(req, res) {
     {
       loc: `${origin}/logo-dam.png`,
       title: 'Ấn chương Bùi Công Đam — Tử Vi Đẩu Số & Lục Hào Kinh Dịch'
+    },
+    {
+      loc: `${origin}/banner-son-thuy.jpg`,
+      title: 'Không gian Nghiệm Lý Tử Vi & Lục Hào — Bùi Công Đam'
     }
   ];
   for (const fb of data.feedbacks || []) {
@@ -650,6 +679,7 @@ ${imageXml}
 </urlset>`;
 
   res.writeHead(200, {
+    ...DEFAULT_SECURITY_HEADERS,
     'Content-Type': 'application/xml; charset=utf-8',
     'Cache-Control': 'public, max-age=0, s-maxage=3600'
   });
@@ -667,12 +697,25 @@ async function serveHomeWithSeo(req, res) {
   let html = fs.readFileSync(indexPath, 'utf8');
   const origin = getOriginUrl(req);
   const data = await readData().catch(() => normalizeDataShape(getDefaultData()));
+  const sortedFeedbacks = sortByDateDesc(data.feedbacks || []);
+  const sortedArticles = sortByDateDesc(data.articles || []);
   const p = data.profile || {};
   const c = p.contact || {};
   const name = p.name || 'Bùi Công Đam';
+  const tagline = p.tagline || 'Nghiệm Lý Tử Vi & Lục Hào';
   const description =
     p.bio ||
     'Bùi Công Đam — Nghiên cứu & luận giải Tử Vi Đẩu Số, Lục Hào Kinh Dịch, dò giờ sinh và lưu trữ hồ sơ feedback thực chứng.';
+  const philosophy =
+    p.philosophy !== undefined
+      ? p.philosophy
+      : 'Luận giải lấy thực chứng làm gốc, giữ lại những điều đã được thời gian kiểm chứng.';
+
+  const allDates = [
+    ...sortedFeedbacks.map((f) => f.date).filter(Boolean),
+    ...sortedArticles.map((a) => a.date).filter(Boolean)
+  ].sort();
+  const lastmod = allDates.length > 0 ? allDates[allDates.length - 1] : new Date().toISOString().slice(0, 10);
 
   const sameAs = ['https://luchao.io.vn/', 'https://gieoque.id.vn/'];
   if (c.facebook) sameAs.push(c.facebook);
@@ -686,19 +729,33 @@ async function serveHomeWithSeo(req, res) {
         url: `${origin}/`,
         name: `${name} — Luận Giải & Nghiệm Lý Tử Vi, Lục Hào`,
         description,
+        inLanguage: 'vi',
+        publisher: { '@id': `${origin}/#person` }
+      },
+      {
+        '@type': 'ProfilePage',
+        '@id': `${origin}/#webpage`,
+        url: `${origin}/`,
+        name: `${name} — Luận Giải & Nghiệm Lý Tử Vi, Lục Hào`,
+        description,
+        isPartOf: { '@id': `${origin}/#website` },
+        about: { '@id': `${origin}/#person` },
+        mainEntity: { '@id': `${origin}/#person` },
+        dateModified: lastmod,
         inLanguage: 'vi'
       },
       {
         '@type': 'Person',
         '@id': `${origin}/#person`,
         name,
+        jobTitle: tagline,
         description,
         image: `${origin}/logo-dam.png`,
         url: `${origin}/`,
         email: c.email || undefined,
         telephone: c.zalo || undefined,
         sameAs: sameAs.length > 0 ? sameAs : undefined,
-        knowsAbout: ['Tử Vi Đẩu Số', 'Lục Hào Kinh Dịch', 'Dò giờ sinh', 'Nghiệm lý tử vi']
+        knowsAbout: ['Tử Vi Đẩu Số', 'Lục Hào Kinh Dịch', 'Dò giờ sinh thực chứng', 'Nghiệm lý tử vi', 'Huyền Không Phi Tinh']
       },
       {
         '@type': 'ProfessionalService',
@@ -741,11 +798,34 @@ async function serveHomeWithSeo(req, res) {
     ]
   });
 
-  if (Array.isArray(data.articles) && data.articles.length > 0) {
+  if (sortedFeedbacks.length > 0) {
+    schemaGraph['@graph'].push({
+      '@type': 'ImageGallery',
+      '@id': `${origin}/#feedbacks-gallery`,
+      name: 'Hồ sơ Phản hồi Thực chứng Tử Vi & Lục Hào',
+      description: 'Tổng hợp hình ảnh phản hồi thực tế từ các ca luận giải Tử Vi Đẩu Số, dò giờ sinh và Lục Hào Kinh Dịch.',
+      author: { '@id': `${origin}/#person` },
+      associatedMedia: sortedFeedbacks.slice(0, 20).map((fb) => {
+        const imgs = Array.isArray(fb.imageUrls) && fb.imageUrls.length > 0 ? fb.imageUrls : (fb.imageUrl ? [fb.imageUrl] : []);
+        const firstUrl = imgs[0] || '/logo-dam.png';
+        const absUrl = firstUrl.startsWith('http') ? firstUrl : `${origin}${firstUrl}`;
+        const topic = String(fb.topic || fb.title || 'Nghiệm lý thực chứng').trim();
+        return {
+          '@type': 'ImageObject',
+          contentUrl: absUrl,
+          name: `${topic} — ${fb.category || 'Tử Vi'}`,
+          description: String(fb.note || topic).trim(),
+          datePublished: fb.date || undefined
+        };
+      })
+    });
+  }
+
+  if (sortedArticles.length > 0) {
     schemaGraph['@graph'].push({
       '@type': 'ItemList',
       name: 'Bài viết Nghiệm lý Tử Vi & Lục Hào',
-      itemListElement: data.articles.slice(0, 12).map((art, i) => ({
+      itemListElement: sortedArticles.slice(0, 12).map((art, i) => ({
         '@type': 'Article',
         position: i + 1,
         headline: art.title,
@@ -759,9 +839,16 @@ async function serveHomeWithSeo(req, res) {
 
   const jsonLdScript = `<script id="seoSchema" type="application/ld+json">${JSON.stringify(schemaGraph).replace(/<\/script/gi, '<\\/script')}</script>`;
 
+  const initialPayload = {
+    profile: p,
+    feedbacks: sortedFeedbacks,
+    articles: sortedArticles
+  };
+  const initialDataScript = `<script id="initialData">window.__INITIAL_DATA__=${JSON.stringify(initialPayload).replace(/<\/script/gi, '<\\/script')};</script>`;
+
   const noscriptItems = [
-    ...(data.feedbacks || []).slice(0, 20).map((f) => `<li>${escapeText(f.category || 'Tử Vi')}: ${escapeText(f.topic || f.title || '')} (${escapeText(f.date || '')})</li>`),
-    ...(data.articles || []).slice(0, 20).map((a) => `<li><strong>${escapeText(a.title || '')}</strong> — ${escapeText(a.summary || '')}</li>`)
+    ...sortedFeedbacks.slice(0, 20).map((f) => `<li>${escapeText(f.category || 'Tử Vi')}: ${escapeText(f.topic || f.title || '')} — ${escapeText(f.note || '')} (${escapeText(f.date || '')})</li>`),
+    ...sortedArticles.slice(0, 20).map((a) => `<li><strong>${escapeText(a.title || '')}</strong> — ${escapeText(a.summary || '')}</li>`)
   ].join('');
   const noscriptTools =
     '<p>Công cụ hỗ trợ huyền học: <a href="https://luchao.io.vn/">Lập Quẻ Lục Hào, Tử Vi Bắc Phái &amp; Phong Thủy Online (luchao.io.vn)</a> · <a href="https://gieoque.id.vn/">Gieo Quẻ Lục Hào Kinh Dịch Online (gieoque.id.vn)</a></p>';
@@ -769,18 +856,26 @@ async function serveHomeWithSeo(req, res) {
 
   html = html
     .replace(/https:\/\/dambc\.vercel\.app/g, () => origin)
+    .replace(/https:\/\/dambc\.io\.vn/g, () => origin)
+    .replace(/<span class="brand-name" id="headerName">[\s\S]*?<\/span>/, () => `<span class="brand-name" id="headerName">${escapeText(name)}</span>`)
+    .replace(/<span class="brand-sub" id="headerTagline">[\s\S]*?<\/span>/, () => `<span class="brand-sub" id="headerTagline">${escapeText(tagline)}</span>`)
+    .replace(/<h1 class="hero-title" id="heroName">[\s\S]*?<\/h1>/, () => `<h1 class="hero-title" id="heroName">${escapeText(name)}</h1>`)
+    .replace(/<p class="hero-bio" id="heroBio">[\s\S]*?<\/p>/, () => `<p class="hero-bio" id="heroBio">${escapeText(description)}</p>`)
+    .replace(/<blockquote class="hero-philosophy" id="heroPhilosophy">[\s\S]*?<\/blockquote>/, () => `<blockquote class="hero-philosophy${philosophy ? '' : ' hidden'}" id="heroPhilosophy">${escapeText(philosophy)}</blockquote>`)
     .replace(/<script id="seoSchema" type="application\/ld\+json">[\s\S]*?<\/script>/, () => jsonLdScript)
     .replace('<!--SEO_DYNAMIC_SCHEMA-->', () => jsonLdScript)
+    .replace('<!--SEO_INITIAL_DATA-->', () => initialDataScript)
     .replace('<!--SEO_NOSCRIPT_SUMMARY-->', () => noscriptBlock);
 
   res.writeHead(200, {
+    ...DEFAULT_SECURITY_HEADERS,
     'Content-Type': 'text/html; charset=utf-8',
     'Cache-Control': 'public, max-age=0, s-maxage=60, stale-while-revalidate=300'
   });
   res.end(html);
 }
 
-async function handleApi(req, res, pathname) {
+async function handleApi(req, res, pathname, reqUrl) {
   if (pathname.startsWith('/api/uploads/feedbacks/')) {
     const rel = pathname.slice('/api/uploads/feedbacks/'.length);
     await serveUploadedImage(res, rel);
@@ -797,12 +892,13 @@ async function handleApi(req, res, pathname) {
 
   if (pathname === '/api/data' && req.method === 'GET') {
     const data = await readData();
-    const storageStats = await getStorageStats(data);
+    const isAdminQuery = reqUrl && reqUrl.searchParams.get('admin') === '1';
+    const storageStats = isAdminQuery ? await getStorageStats(data) : undefined;
     return sendJson(res, 200, {
       profile: data.profile,
       feedbacks: sortByDateDesc(data.feedbacks),
       articles: sortByDateDesc(data.articles),
-      storageStats
+      ...(storageStats ? { storageStats } : {})
     });
   }
 
@@ -1076,6 +1172,8 @@ async function handleApi(req, res, pathname) {
 
     const restoredData = normalizeDataShape(body.data);
     await writeData(restoredData, 'Khôi phục dữ liệu từ file sao lưu');
+    memoryCache.files = null;
+    memoryCache.filesUpdatedAt = 0;
     const storageStats = await getStorageStats(restoredData);
 
     return sendJson(res, 200, {
@@ -1091,6 +1189,16 @@ async function handleApi(req, res, pathname) {
 
 async function requestHandler(req, res) {
   try {
+    const incomingHost = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim().toLowerCase();
+    if (incomingHost === 'www.dambc.io.vn') {
+      res.writeHead(308, {
+        ...DEFAULT_SECURITY_HEADERS,
+        Location: `${CANONICAL_ORIGIN}${req.url || '/'}`
+      });
+      res.end();
+      return;
+    }
+
     const reqUrl = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
     const allPaths = reqUrl.searchParams.getAll('__path');
     const matchedHeader = String(req.headers['x-matched-path'] || '').trim();
@@ -1101,7 +1209,7 @@ async function requestHandler(req, res) {
     const pathname = decodeURIComponent(rewrittenPath || reqUrl.pathname);
 
     if (pathname.startsWith('/api/')) {
-      await handleApi(req, res, pathname);
+      await handleApi(req, res, pathname, reqUrl);
       return;
     }
 
