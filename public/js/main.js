@@ -284,10 +284,6 @@
             `).join('')}</div>`
           : '';
 
-        const captionHtml = extraNote
-          ? `<p class="feedback-card-caption" title="${escapeHtml(extraNote)}">${escapeHtml(extraNote)}</p>`
-          : `<div class="sr-only">${escapeHtml(topicText)}</div>`;
-
         return `
         <article class="feedback-card">
           <div class="feedback-card-head">
@@ -306,7 +302,7 @@
             </span>
           </button>
           ${thumbsHtml}
-          ${captionHtml}
+          <div class="sr-only">${escapeHtml(topicText)} ${escapeHtml(extraNote)}</div>
         </article>
       `;
       })

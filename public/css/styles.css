@@ -974,20 +974,6 @@ a {
   border-radius: 7px;
 }
 
-.feedback-card-caption {
-  margin: 10px 0 0;
-  padding-top: 8px;
-  border-top: 1px dashed var(--border-subtle);
-  font-size: 0.85rem;
-  line-height: 1.5;
-  color: var(--text-secondary);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
 .empty-state {
   grid-column: 1 / -1;
   text-align: center;
@@ -2074,7 +2060,7 @@ textarea.form-control {
   }
 
   .feedback-card {
-    height: 430px;
+    height: 420px;
     padding: 14px;
   }
 
