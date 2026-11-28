@@ -18,6 +18,20 @@
   },
   "feedbacks": [
     {
+      "id": "fb-de9d54d1",
+      "category": "Tử Vi",
+      "topic": "Mượn bàn luận sức khỏe bố",
+      "title": "Mượn bàn luận sức khỏe bố",
+      "note": "Nghiệm lý vài dòng về sức khỏe của bố",
+      "imageUrl": "/uploads/feedbacks/2026-11-28T14-54-55-muon-ban-luan-suc-khoe-bo-b3a86b.webp",
+      "imageUrls": [
+        "/uploads/feedbacks/2026-11-28T14-54-55-muon-ban-luan-suc-khoe-bo-b3a86b.webp"
+      ],
+      "date": "2026-11-28",
+      "source": "",
+      "featured": false
+    },
+    {
       "id": "fb-97072369",
       "category": "Tử Vi",
       "topic": "Lá số con luận giải hôn nhân bố mẹ",
